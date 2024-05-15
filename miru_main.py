@@ -18,8 +18,8 @@ while True:
     #pprint.pprint(r)
     #pose_detector_object.draw_facial_keypoints_on(frame = frame, predictions = r, keypoint_confidence_threshold = 0.5)
     #pose_detector_object.draw_face_bounding_box_on(frame = frame, predictions = r, keypoint_confidence_threshold = 0.5)
-    pose_detector_object.extract_and_draw_face_bounding_box_on(frame = frame, predictions = r, keypoint_confidence_threshold = 0.85,rect_size=200)
-    
+    #pose_detector_object.extract_and_draw_face_bounding_box_on(frame = frame, predictions = r, keypoint_confidence_threshold = 0.85,rect_size=200)
+    pose_detector_object.draw_detected_face_bounds_on(frame = frame, predictions = r, keypoint_confidence_threshold = 0.85)
 
     # Display frame
     cv2.imshow("Webcam", frame)

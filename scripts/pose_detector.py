@@ -252,5 +252,80 @@ class PoseDetector():
 
         return frame
 
+    def draw_detected_face_bounds_on(self, frame:np.ndarray = None, predictions:list[dict]=None, keypoint_confidence_threshold:float = 0.75) -> np.ndarray:
+       
+        if predictions is None:
+            raise ValueError("No detections provided")
+        
+        extracted_face_coordinates = []
+        facial_keypoints = ["left_eye", "right_eye", "nose", "left_ear", "right_ear"]
+
+        for detection in predictions:
+            if detection["class_name"] != "person":
+                continue
+
+            detected_keypoints = {
+                "left_eye": False,
+                "right_eye": False,
+                "nose": False,
+                "left_ear": False,
+                "right_ear": False
+            }
+
+            for keypoint_name in facial_keypoints:
+                keypoint = detection["keypoints"][keypoint_name]
+                if keypoint[2] > keypoint_confidence_threshold: #means detected and confidence is above threshold
+                    detected_keypoints[keypoint_name] = True                    
+                else:
+                    continue
+
+            #draw face bounding box if eyes and the nose are detected
+            if detected_keypoints["left_eye"] and detected_keypoints["right_eye"]:
+                #print("Face detected")
+                              
+                frame_height, frame_width, _ = frame.shape
+               
+                left_eye_center = (detection["keypoints"]["left_eye"][0],detection["keypoints"]["left_eye"][1])
+                right_eye_center = (detection["keypoints"]["right_eye"][0],detection["keypoints"]["right_eye"][1])               
     
+
+                distance_between_eyes = abs(left_eye_center[0] - right_eye_center[0])
+                face_center_x = (left_eye_center[0] + right_eye_center[0]) // 2
+                face_center_y = (left_eye_center[1] + right_eye_center[1]) // 2
+
+                # Define box size based on the distance between eyes
+                box_width = int(4.0 * distance_between_eyes) # Adjust the multiplier as needed
+                box_height = int(4.0 * distance_between_eyes) # Adjust the multiplier as needed
+
+                # Calculate the top-left and bottom-right coordinates
+                face_bbox_x1 = int(max(0, face_center_x - box_width // 2))
+                face_bbox_y1 = int(max(0, face_center_y - box_height // 2))
+                face_bbox_x2 = int(min(frame_width - 1, face_center_x + box_width // 2))
+                face_bbox_y2 = int(min(frame_height - 1, face_center_y + box_height // 2))
+
+                #cv2.rectangle(frame, (face_bbox_x1, face_bbox_y1), (face_bbox_x2, face_bbox_y2), (0, 255, 0), 2)
+
+                extracted_face_coordinates.append(copy.deepcopy([(face_bbox_x1,face_bbox_y1), (face_bbox_x2,face_bbox_y2)]))
+
+            #sort extracted faces by size
+            extracted_face_coordinates = sorted(extracted_face_coordinates, key=lambda face: (face[1][0]-face[0][0]) * (face[1][1]-face[0][1]), reverse=True)
+
+            for face_bbox_coordinates in extracted_face_coordinates:
+                overlay_stroke = frame.copy()
+                overlay_fill = frame.copy()
+                fill_color = (0, 0, 0)
+                stroke_color = (75, 75, 75)
+                alpha_stroke = 0.75
+                alpha_fill = 0.75
+
+                cv2.rectangle(overlay_fill, face_bbox_coordinates[0], face_bbox_coordinates[1], fill_color, -1)
+                cv2.rectangle(overlay_stroke, face_bbox_coordinates[0], face_bbox_coordinates[1], stroke_color, 5)
+
+                # Add the overlay to the original frame
+                cv2.addWeighted(overlay_fill, alpha_fill, frame, 1 - alpha_fill, 0, frame)
+                cv2.addWeighted(overlay_stroke, alpha_stroke, frame, 1 - alpha_stroke, 0, frame)
+                
+                    
+    
+        
 
