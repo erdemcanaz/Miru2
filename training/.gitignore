@@ -1,0 +1,17 @@
+local_images/*
+!local_images/.gitkeep
+local_videos/*
+!local_videos/.gitkeep
+
+data/images/*
+!data/images/.gitkeep
+data/labels/*
+!data/labels/.gitkeep
+
+untrained_yolo_models/*
+!untrained_yolo_models/.gitkeep
+
+
+trainings/*
+*yolov8n.pt
+*labels.cache
