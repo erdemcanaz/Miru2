@@ -13,5 +13,9 @@ untrained_yolo_models/*
 
 
 training_results/*
+
+local_test_results/*
+!local_test_results/.gitkeep
+
 *yolov8n.pt
 *labels.cache
