@@ -1,2 +1,5 @@
-hairnet
-glass
+hair_net
+safety_goggles
+pandemi_mask
+no_goggles
+beard_net

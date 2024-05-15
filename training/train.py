@@ -34,13 +34,13 @@ def main():
 
     model.train(
         data=yaml_file,
-        classes = [0,1],
-        epochs=100, 
+        classes = [0,1,2,3,4],
+        epochs=250, 
         save_dir=save_dir,
         project=save_dir,
         name=experiment,
         imgsz=640,
-        save_period = 10,
+        save_period = 25,
         batch = 8,
         plots = True
     )

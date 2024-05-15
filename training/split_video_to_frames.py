@@ -1,4 +1,5 @@
 import cv2
+import uuid
 
 def split_video_to_frames(video_path:str=None, image_export_path:str=None, frame_skip:int= 30):
     cap = cv2.VideoCapture(video_path)
@@ -23,13 +24,18 @@ def split_video_to_frames(video_path:str=None, image_export_path:str=None, frame
         key = cv2.waitKey(0) & 0xFF
 
         if key == ord('a'):
-            current_frame = max(0, current_frame - 1)
-        elif key == ord('d'):
-            current_frame = min(total_frames - 1, current_frame + 1)
-        elif key == ord('s'):
-            cv2.imwrite(f'{image_export_path}/frame_{current_frame}.jpg', frame)
-            print(f"Frame {current_frame} saved.")
+            current_frame = max(0, current_frame - 30)
         elif key == ord('q'):
+            current_frame = max(0, current_frame - 150)
+        elif key == ord('d'):
+            current_frame = min(total_frames - 1, current_frame + 30)
+        elif key == ord('e'):
+            current_frame = min(total_frames - 1, current_frame + 150)
+        elif key == ord('s'):
+            frame_uuid = str(uuid.uuid4())
+            cv2.imwrite(f'{image_export_path}/frame_{current_frame}_{frame_uuid}.jpg', frame)
+            print(f"Frame {frame_uuid} saved.")
+        elif key == ord('w'):
             break
 
     cap.release()

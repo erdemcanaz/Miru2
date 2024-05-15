@@ -1,8 +1,8 @@
 # Define the number of classes in your dataset
-nc: 2  # number of classes
+nc: 5  # number of classes
 
 # Provide the names of the classes
-names: ['hairnet', 'glass']
+names: ['hairnet', 'safety_goggles','pandemi_mask', "no_goggles", 'beard_net']
 
 # Paths to training and validation data
 # Replace 'path/to/train/images' and 'path/to/val/images' with actual paths to your datasets
