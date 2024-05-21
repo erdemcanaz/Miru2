@@ -34,10 +34,10 @@ void loop() {
 
     if (c == 'i') {  // send a reply so that the computer knows this is the arduino port
       Serial.println("THIS_IS_ARDUINO");
-    } else if (c == '1') {
+    } else if (c == '1') { // Activate turnstile for a while
       last_time_turnstile_activated = millis();
       Serial.println("ECHO_1");
-    } else if (c=='0'){
+    } else if (c=='0'){ // Do nothing, just last communication time is updated
       Serial.println("ECHO_0");
     }
   }
