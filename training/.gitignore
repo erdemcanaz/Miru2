@@ -12,6 +12,9 @@ untrained_yolo_models/*
 !untrained_yolo_models/.gitkeep
 
 
+trained_yolo_models/*
+!trained_yolo_models/.gitkeep
+
 training_results/*
 
 local_test_results/*

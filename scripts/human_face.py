@@ -6,3 +6,7 @@ class HumanFaceBBox:
 
     
 
+class HumanFaceTracker:
+
+    def __init__(self):
+        pass
