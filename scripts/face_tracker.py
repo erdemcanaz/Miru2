@@ -16,9 +16,11 @@ class HumanFaceFrame:
     def get_bbox_coordinates(self) -> list[tuple[int, int], tuple[int, int]]:
         return self.bbox_coordinates
     
+    
     def check_obeys_to_which_rules(self) -> dict[str, bool]:
-        #check if the bbox is a proper rectangle
+
         #TODO: A yolov8 model should be trained to detect the following objects: hairnet, safety google, face mask and beard
+
         dict_of_rules = {
             "is_hairnet_worn": False,
             "is_safety_google_worn": True,
