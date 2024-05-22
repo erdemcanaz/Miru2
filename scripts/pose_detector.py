@@ -149,10 +149,6 @@ class PoseDetector():
            
         return extracted_face_coordinates
 
-          
-        
-
-
     def draw_facial_keypoints_on(self, frame:np.ndarray = None, predictions:list[dict] = None, keypoint_confidence_threshold:float = 0.75) -> np.ndarray:
         if predictions is None:
             raise ValueError("No detections provided")

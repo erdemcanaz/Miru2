@@ -2,7 +2,6 @@ import numpy as np
 import copy, time
 import cv2
 
-
 class HumanFaceFrame:
 
     def __init__(self, bbox_coordinates:list[tuple[int, int], tuple[int, int]], extracted_face_frame:np.ndarray=None):
@@ -16,7 +15,7 @@ class HumanFaceFrame:
     def get_bbox_coordinates(self) -> list[tuple[int, int], tuple[int, int]]:
         return self.bbox_coordinates
     
-    
+
     def check_obeys_to_which_rules(self) -> dict[str, bool]:
 
         #TODO: A yolov8 model should be trained to detect the following objects: hairnet, safety google, face mask and beard
@@ -42,7 +41,7 @@ class HumanFaceFrame:
         return True
     
     def __draw_face_detection_rectangle_on(self, is_draw_scan_line:bool=False, frame:np.ndarray=None, stroke_color:tuple[int,int,int]=(0,0,0), stripe_stroke:int=1, bold_stroke:int=5) -> np.ndarray:
-   
+    
         #draw bounding edges
         cv2.rectangle(frame, self.bbox_coordinates[0],  self.bbox_coordinates[1], stroke_color, stripe_stroke)
 
@@ -96,17 +95,18 @@ class HumanFaceFrame:
             "is_beard_present": "Beard",
         }
 
+        (text_width, text_height), _ = cv2.getTextSize("x", cv2.FONT_HERSHEY_SIMPLEX, text_size, text_thickness)
         if self.is_allowed_to_pass():
-            cv2.putText(frame, "ALLOWED TO PASS", (self.bbox_coordinates[0][0], self.bbox_coordinates[0][1]-10), cv2.FONT_HERSHEY_SIMPLEX, text_size, positive_text_color, text_thickness)
+            cv2.putText(frame, "ALLOWED TO PASS", (self.bbox_coordinates[0][0], self.bbox_coordinates[0][1]-text_height), cv2.FONT_HERSHEY_SIMPLEX, text_size, positive_text_color, text_thickness)
         else:
             cv2.putText(frame, "NOT ALLOWED TO PASS", (self.bbox_coordinates[0][0], self.bbox_coordinates[0][1]-10), cv2.FONT_HERSHEY_SIMPLEX, text_size, negative_text_color, text_thickness)
 
         for index, (rule_name_key, rule_value) in enumerate(self.obeyed_rules_dict.items()):
             if rule_value:
-                rule_text = key_mapping[rule_name_key] + ": YES"
+                rule_text = "(+) "+key_mapping[rule_name_key]
                 text_color = positive_text_color
             else:
-                rule_text = key_mapping[rule_name_key] + ": NO"
+                rule_text = "(-) "+key_mapping[rule_name_key]
                 text_color = negative_text_color
 
             (text_width, text_height), _ = cv2.getTextSize(rule_text, cv2.FONT_HERSHEY_SIMPLEX, text_size, text_thickness)
@@ -139,8 +139,10 @@ class HumanFaceTracker:
                 face_object.draw_face(positive_text_color = (154,14,15), negative_text_color = (0,0,135), text_size = 1, text_thickness = 2, frame=frame, is_draw_scan_line=True,  stroke_color = (154,14,15), stripe_stroke=2, bold_stroke=5)
             else: #other faces that are detected but has no effect on turnstiles
                 face_object.draw_face(positive_text_color = (75,75,75), negative_text_color = (75,75,75), text_size = 0.5, text_thickness = 1, frame=frame, is_draw_scan_line=False, stroke_color = (75,75,75), stripe_stroke=1, bold_stroke=5)
-
         return frame
+    
+    def get_number_of_detected_faces(self) -> int:
+        return len(self.tracked_faces)
     
     def should_turn_on_turnstiles(self) -> bool:
         if len(self.tracked_faces) == 0:

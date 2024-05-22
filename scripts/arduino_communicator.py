@@ -39,15 +39,21 @@ class ArduinoCommunicator:
                 return False
         return False
     
-    def find_and_connect_to_arduino_port_if_possible(self)->int:        
-        ports = serial.tools.list_ports.comports()
-        
+    def shutdown_connection(self):
         # Close existing serial connection if any
         if self.serial_connection is not None and self.serial_connection.isOpen():
             self.serial_connection.close()
 
         self.serial_connection = None
         self.arduino_port = None
+
+        if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))} -> Serial connection is closed")
+            
+    def find_and_connect_to_arduino_port_if_possible(self)->int:        
+        ports = serial.tools.list_ports.comports()
+        
+        # Close existing serial connection if any
+        self.shutdown_connection()
         
         # Try each port to connect to Arduino
         for port in ports:
