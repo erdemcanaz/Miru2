@@ -3,12 +3,13 @@ import serial.tools.list_ports
 import time,random
 
 class ArduinoCommunicator:
-    def __init__(self, baud_rate=9600, timeout=2, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 30, verbose = False):
+    def __init__(self, baud_rate=9600, serial_timeout=2, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 30, verbose = False, write_delay_s = 0.05):
         self.SERIAL_BAUDRATE = baud_rate
-        self.SERIAL_TIMEOUT = timeout
+        self.SERIAL_TIMEOUT = serial_timeout
         self.arduino_port = None
         self.serial_connection = None
         self.EXPECTED_RESPONSE = expected_response # When sending 'i' to Arduino, it should reply with this string
+        self.WRITE_DELAY_S = write_delay_s
 
         self.CONNECTION_TEST_PREIOD_S = connection_test_period_s  # Connection timeout in seconds
         self.last_connection_check_time = 0  # Time of last connection check       
@@ -16,7 +17,10 @@ class ArduinoCommunicator:
         self.VERBOSE = verbose 
         
     def is_connection_test_time_elapsed(self)->bool:
-        return time.time() - self.last_connection_check_time > self.CONNECTION_TEST_PREIOD_S
+        time_elapsed = time.time() - self.last_connection_check_time
+        if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))} -> Time elapsed since last connection check: {time_elapsed:.2f} seconds")
+        
+        return time_elapsed > self.CONNECTION_TEST_PREIOD_S # True if time elapsed is greater than connection test period
 
     def is_getting_expected_reply_from_port(self)->bool:
         self.last_connection_check_time = time.time() # Update last connection check time
@@ -58,15 +62,11 @@ class ArduinoCommunicator:
                     if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))} -> Connected to Arduino at port {self.arduino_port}")
                     return True # Connected to Arduino
             except (OSError, serial.SerialException):
-                if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))} -> Failed to connect to port {port.device}")
+                if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))} -> (EXCEPT) Failed to connect to port {port.device}")
                 continue # Try next port
         
         if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))} -> Among '{len(ports)}' number of ports, Arduino is not found")
         return False # Not connected to Arduino
-
-    def keep_connected_to_arduino(self):
-        if not self.is_getting_expected_reply_from_port():
-            self.find_and_connect_to_arduino_port_if_possible()
 
     def get_connection_status(self)->bool:
         if self.serial_connection is not None and self.serial_connection.isOpen():
@@ -81,11 +81,33 @@ class ArduinoCommunicator:
             if not self.is_getting_expected_reply_from_port():                
                 self.find_and_connect_to_arduino_port_if_possible()
 
+    def send_activate_turnstile_signal(self):
+        try:
+            self.serial_connection.write(b"1")
+            if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))}      (ACTIVATE TURNSTILE) -> Data '1' sent to Arduino") 
+            time.sleep(self.WRITE_DELAY_S)
+        except Exception as e:                
+            if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))}      (ACTIVATE TURNSTILE EXCEPT) ->{e}")
+
+    def send_ping_to_arduino(self):
+        # Send '0' to Arduino to let arduino know that the connection is still alive
+        try:
+            self.serial_connection.write(b"0")
+            if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))}      (PING ARDUINO) -> Data '0' sent to Arduino") 
+            time.sleep(self.WRITE_DELAY_S)
+        except Exception as e:                
+            if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))}      (PING ARDUINO EXCEPT) ->{e}")
+
 if __name__ == "__main__":
-    arduino_communicator = ArduinoCommunicator(baud_rate=9600, timeout=2, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 2.5, verbose = True)
+    arduino_communicator = ArduinoCommunicator(baud_rate=9600, serial_timeout=2, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 10, verbose = True, write_delay_s=0.05)
 
     while True:
         arduino_communicator.ensure_connection()             
         arduino_communicator.get_connection_status()
 
+        if random.uniform(0,1) < 0.1:
+            arduino_communicator.send_activate_turnstile_signal()
+        else:
+            arduino_communicator.send_ping_to_arduino()
+    
         time.sleep(1)
