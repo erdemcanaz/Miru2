@@ -2,7 +2,7 @@ import cv2
 import pose_detector
 import uuid
 
-def split_facebbox_from_video(data_name:str =  None, video_path:str=None, image_export_path:str=None, frame_skip:int= 30, is_manual:bool = False, desired_image_edge_lengths:int = 200):
+def split_frame_with_persons_from_video(data_name:str =  None, video_path:str=None, image_export_path:str=None, frame_skip:int= 30, is_manual:bool = False, desired_image_edge_lengths:int = 200):
     pose_detector_object = pose_detector.PoseDetector(model_name="yolov8n-pose")
 
     cap = cv2.VideoCapture(video_path)
@@ -24,9 +24,7 @@ def split_facebbox_from_video(data_name:str =  None, video_path:str=None, image_
 
         r = pose_detector_object.predict_frame_and_return_detections(frame,bbox_confidence=0.5)   
         extracted_face_frames = pose_detector_object.get_fbbox_frames(frame = frame, predictions = r, keypoint_confidence_threshold = 0.85, desired_image_edge_lengths = 200)
-        for i, face_frame in enumerate(extracted_face_frames):
-            cv2.imshow(f'Face {i}', face_frame)
-
+        
         cv2.imshow('Video', frame)
 
         if is_manual:
@@ -41,10 +39,8 @@ def split_facebbox_from_video(data_name:str =  None, video_path:str=None, image_
             elif key == ord('e'):
                 current_frame = min(total_frames - 1, current_frame + frame_skip*5)
             elif key == ord('s'):
-                for i, face_frame in enumerate(extracted_face_frames):
-                    frame_uuid = str(uuid.uuid4())
-                    cv2.imwrite(f'{image_export_path}/frame_{current_frame}_{frame_uuid}.jpg', face_frame)
-                    print(f"Frame {frame_uuid} saved.")
+                cv2.imwrite(f'{image_export_path}/frame_{current_frame}_{frame_uuid}.jpg', frame)             
+                print(f"Frame {frame_uuid} saved.")
             elif key == ord('w'):
                 break
         else:
@@ -52,13 +48,13 @@ def split_facebbox_from_video(data_name:str =  None, video_path:str=None, image_
                 break
             else:
                 current_frame += frame_skip
-                for i, face_frame in enumerate(extracted_face_frames):
-                    frame_uuid = str(uuid.uuid4())
-                    if data_name is not None:
-                        cv2.imwrite(f'{image_export_path}/{data_name}_frame_{current_frame}_{frame_uuid}.jpg', face_frame)
-                    else:
-                        cv2.imwrite(f'{image_export_path}/frame_{current_frame}_{frame_uuid}.jpg', face_frame)
-                    print(f"Frame {frame_uuid} saved.")
+                frame_uuid = str(uuid.uuid4())
+                if data_name is not None:
+                    cv2.imwrite(f'{image_export_path}/{data_name}_frame_{current_frame}_{frame_uuid}.jpg', frame)
+                else:
+                    cv2.imwrite(f'{image_export_path}/frame_{current_frame}_{frame_uuid}.jpg', frame)
+                print(f"Frame {frame_uuid} saved.")
+                    
 
             key = cv2.waitKey(10) & 0xFF
             if key == ord('w'):
@@ -74,4 +70,4 @@ if __name__ == "__main__":
     image_export_path = input("Enter image export folder path: ")
     data_name = input("Enter data-name: ")
 
-    split_facebbox_from_video(data_name= data_name, video_path=video_path, image_export_path = image_export_path, frame_skip = 25, is_manual = False, desired_image_edge_lengths= 250)
+    split_frame_with_persons_from_video(data_name= data_name, video_path=video_path, image_export_path = image_export_path, frame_skip = 50, is_manual = False, desired_image_edge_lengths= 250)

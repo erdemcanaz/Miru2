@@ -34,7 +34,7 @@ while True:
     pred_dicts = pose_detector_object.predict_frame_and_return_detections(frame,bbox_confidence=0.5)    
     face_bbox_coords = pose_detector_object.get_face_bounding_boxes_coordinates(frame = frame, predictions= pred_dicts, keypoint_confidence_threshold = 0.85)
     
-    face_tracker_object.update_detected_faces(frame=frame, detected_face_bbox_coords=face_bbox_coords)
+    face_tracker_object.update_detected_faces(frame=frame, detected_face_bbox_coords=face_bbox_coords) # during initialization of detected faces, their rule appliences are also evaluated.
     face_tracker_object.draw_faces_on_frame(frame=frame)
 
     if face_tracker_object.should_turn_on_turnstiles():

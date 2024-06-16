@@ -1,5 +1,4 @@
-hair_net
+net
 safety_goggles
-pandemi_mask
-no_goggles
-beard_net
+beard
+surgical_mask

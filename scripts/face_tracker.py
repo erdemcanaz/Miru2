@@ -7,6 +7,7 @@ class HumanFaceFrame:
     def __init__(self, bbox_coordinates:list[tuple[int, int], tuple[int, int]], extracted_face_frame:np.ndarray=None):
         self.bbox_coordinates = bbox_coordinates
         self.bbox_area = abs((bbox_coordinates[1][0] - bbox_coordinates[0][0]) * (bbox_coordinates[1][1] - bbox_coordinates[0][1]))
+        self.extracted_face_frame = extracted_face_frame
         self.obeyed_rules_dict = self.check_obeys_to_which_rules()
 
     def get_bbox_area(self) -> int:
@@ -15,7 +16,6 @@ class HumanFaceFrame:
     def get_bbox_coordinates(self) -> list[tuple[int, int], tuple[int, int]]:
         return self.bbox_coordinates
     
-
     def check_obeys_to_which_rules(self) -> dict[str, bool]:
 
         #TODO: A yolov8 model should be trained to detect the following objects: hairnet, safety google, face mask and beard
