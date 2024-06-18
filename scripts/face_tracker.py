@@ -124,7 +124,7 @@ class HumanFaceTracker:
     def __init__(self):
         self.tracked_faces = []
 
-    def update_detected_faces(self, frame:np.ndarray = None, detected_face_bbox_coords:list[list[tuple[int,int], tuple[int,int]]] = None) -> None:
+    def update_detected_faces(self, frame:np.ndarray = None, detected_face_bbox_coords:list[list[tuple[int,int], tuple[int,int]]] = None, equipment_detections:list[dict]=[]) -> None:
         self.tracked_faces = []
         for bbox_coords in detected_face_bbox_coords:
             face_frame = copy.deepcopy(frame[bbox_coords[0][1]:bbox_coords[1][1], bbox_coords[0][0]:bbox_coords[1][0]])

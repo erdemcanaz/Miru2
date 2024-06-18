@@ -40,7 +40,7 @@ class SlideShow():
         self.opacity = min(1.0, self.opacity + 0.03)
 
     def decrease_opacity(self):        
-        self.opacity = max(0.0, self.opacity - 0.03)
+        self.opacity = max(0.0, self.opacity - 0.05)
 
     def draw_slide_on_top_of_frame(self, frame:np.ndarray, slide_frame:np.ndarray):
         return_frame = copy.deepcopy(frame)
