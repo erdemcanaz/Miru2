@@ -6,11 +6,11 @@ def main():
     torch.cuda.set_device(0) # Set to your desired GPU number
 
     #==== Option 1: Train directly from the model definition
-    model = YOLO('yolov8m.yaml')
+    # model = YOLO('yolov8m.yaml')
 
     #==== Option 2: Build from YAML and transfer pretrained weights
-    # model_path_to_train_on = input("Enter the path to the model to train on (new): ")
-    # model = YOLO('yolov8n.yaml').load(model_path_to_train_on)
+    model_path_to_train_on = input("Enter the path to the model to train on (new): ")
+    model = YOLO('yolov8n.yaml').load(model_path_to_train_on)
 
     RUN_ON_CUDA = True
     if RUN_ON_CUDA and torch.cuda.is_available():

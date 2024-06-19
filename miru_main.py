@@ -35,7 +35,7 @@ while True:
     # else:
     #     cv2.putText(frame, "Arduino connection successful", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
         
-    equipment_detector_object.predict_frame(frame, bbox_confidence=0.65)
+    equipment_detector_object.predict_frame(frame, bbox_confidence=0.75)
     equipment_formatted_predictions = equipment_detector_object.return_formatted_predictions_list()
 
     pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(frame,bbox_confidence=0.5)        
