@@ -2,7 +2,18 @@ import serial
 import serial.tools.list_ports
 import time,random
 
+import numpy as np
+import cv2
+
 class ArduinoCommunicator:
+
+    ICON_PATHS = {
+        "arduino_online": "src/images/icons/arduino_online_icon.png",
+        "arduino_online_no_bg": "src/images/icons/arduino_online_icon_nobg.png", # This icon is used for displaying on the screen
+        "arduino_offline": "src/images/icons/arduino_offline_icon.png",
+        "arduino_offline_no_bg": "src/images/icons/arduino_offline_icon_nobg.png", # This icon is used for displaying on the screen
+    }
+
     def __init__(self, baud_rate=9600, serial_timeout=2, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 30, verbose = False, write_delay_s = 0.05):
         self.SERIAL_BAUDRATE = baud_rate
         self.SERIAL_TIMEOUT = serial_timeout
@@ -16,6 +27,37 @@ class ArduinoCommunicator:
 
         self.VERBOSE = verbose 
         
+    def draw_arduino_connection_status_icon(self, frame: np.ndarray):
+        if self.get_connection_status():
+            icon = cv2.imread(self.ICON_PATHS["arduino_online_no_bg"], cv2.IMREAD_UNCHANGED)
+        else:
+            icon = cv2.imread(self.ICON_PATHS["arduino_offline_no_bg"], cv2.IMREAD_UNCHANGED)
+        
+        # Check if the icon has an alpha channel
+        if icon.shape[2] == 4:
+            # Split the icon into its channels
+            b, g, r, a = cv2.split(icon)
+            
+            # Create an alpha mask
+            alpha = a / 255.0
+            
+            # Get the region of interest (ROI) on the frame
+            y1, y2 = 10, 10 + icon.shape[0]
+            x1, x2 = 10, 10 + icon.shape[1]
+            
+            # Extract the region of interest from the frame
+            roi = frame[y1:y2, x1:x2]
+
+            # Blend the icon with the frame using the alpha mask
+            for c in range(3):
+                roi[:, :, c] = (roi[:, :, c] * (1 - alpha) + icon[:, :, c] * alpha).astype(np.uint8)
+
+            # Put the blended result back into the frame
+            frame[y1:y2, x1:x2] = roi
+        else:
+            # If the icon does not have an alpha channel, just paste it
+            frame[10:icon.shape[0]+10, 10:icon.shape[1]+10] = icon
+
     def is_connection_test_time_elapsed(self)->bool:
         time_elapsed = time.time() - self.last_connection_check_time
         if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))} -> Time elapsed since last connection check: {time_elapsed:.2f} seconds")

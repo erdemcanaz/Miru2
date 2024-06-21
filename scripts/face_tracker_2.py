@@ -5,8 +5,30 @@ import pprint
 
 class Face:
 
-    def __init__(self):
+    ICON_PATHS = {
+        "grey_hairnet": "src/images/icons/grey_hairnet.png",
+        "green_hairnet": "src/images/icons/green_hairnet.png",
+        "red_hairnet": "src/images/icons/red_hairnet.png",
+        "blue_hairnet": "src/images/icons/blue_hairnet.png",
 
+        "grey_goggles": "src/images/icons/grey_goggles.png",
+        "green_goggles": "src/images/icons/green_goggles.png",
+        "red_goggles": "src/images/icons/red_goggles.png",
+        "blue_goggles": "src/images/icons/blue_goggles.png",
+
+        "grey_beardnet": "src/images/icons/grey_beardnet.png",
+        "green_beardnet": "src/images/icons/green_beardnet.png",
+        "red_beardnet": "src/images/icons/red_beardnet.png",
+        "blue_beardnet": "src/images/icons/blue_beardnet.png",
+
+        "grey_surgical_mask": "src/images/icons/grey_surgicalmask.png",
+        "green_surgical_mask": "src/images/icons/green_surgicalmask.png",
+        "red_surgical_mask": "src/images/icons/red_surgicalmask.png",
+        "blue_surgical_mask": "src/images/icons/blue_surgicalmask.png",
+        
+    }
+
+    def __init__(self):
         self.face_bbox: list = []
         self.goggles_bboxes: list = []
         self.net_bboxes: list = []
@@ -15,9 +37,13 @@ class Face:
 
     def set_face_bbox(self, bbox:tuple[int,int,int,int]) -> None:
         self.face_bbox = bbox
+
     def get_face_bbox(self) -> list:
         return self.face_bbox
 
+    def get_face_bbox_area(self) -> int:
+        return abs((self.face_bbox[2] - self.face_bbox[0]) * (self.face_bbox[3] - self.face_bbox[1]))
+    
     def append_net_bboxes(self, bbox:tuple[int,int,int,int]) -> None:
         self.net_bboxes.append(bbox)
     
@@ -72,10 +98,110 @@ class Face:
         for goggles_bbox in self.goggles_bboxes:
             cv2.rectangle(frame, (goggles_bbox[0],goggles_bbox[1]),  (goggles_bbox[2],goggles_bbox[3]), (0,0,255), 1)
     
-    def draw_face(self, positive_text_color:tuple[int,int,int]=(0,255,0),negative_text_color:tuple[int,int,int]=(0,0,255),text_size:float = 0.5, text_thickness:int = 2, frame:np.ndarray=None, is_draw_scan_line:bool = True,  stroke_color: tuple[int,int,int] = (0,255,0), stripe_stroke:int=1, bold_stroke:int=5):
-        self.__draw_face_detection_rectangle_on(is_draw_scan_line=is_draw_scan_line, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)   
-        self.__add_rule_texts_on(frame=frame, positive_text_color=positive_text_color, negative_text_color=negative_text_color, text_size=text_size, text_thickness =text_thickness)
+    def draw_face(self, frame:np.ndarray=None, is_main_face:bool = None, stripe_stroke:int=1, bold_stroke:int=5):
+        if is_main_face:
+            stroke_color = (108,208,142) if self.is_allowed_to_pass() else (82,82,255) #green or red
+            self.__draw_face_detection_rectangle_on(is_draw_scan_line=True, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)   
+            self.__add_equipment_icons_main_face(frame=frame)
 
+        
+        else:
+            stroke_color = (186,186,186)
+            self.__draw_face_detection_rectangle_on(is_draw_scan_line=False, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)
+            self._add_equipment_icons_secondary_faces(frame=frame)
+            
+
+        #self.__add_rule_texts_on(frame=frame, positive_text_color=positive_text_color, negative_text_color=negative_text_color, text_size=text_size, text_thickness =text_thickness)
+
+    def __append_icon_on_frame(self, frame: np.ndarray, icon_name: str, x_position: int, y_position: int, max_width: int, max_height: int) -> np.ndarray:
+        # Read the icon with the alpha channel
+        icon = cv2.imread(Face.ICON_PATHS[icon_name], cv2.IMREAD_UNCHANGED)
+
+        # Get the dimensions of the icon
+        icon_height, icon_width = icon.shape[:2]
+        
+        # Calculate the scaling factor to maintain aspect ratio
+        scaling_factor = min(max_width / icon_width, max_height / icon_height)
+        
+        # Calculate the new size maintaining the aspect ratio
+        new_width = int(icon_width * scaling_factor)
+        new_height = int(icon_height * scaling_factor)
+        
+        # Resize the icon
+        icon = cv2.resize(icon, (new_width, new_height), interpolation=cv2.INTER_AREA)
+        
+        # Check if the icon has an alpha channel
+        if icon.shape[2] == 4:
+            # Split the icon into its channels
+            b, g, r, a = cv2.split(icon)
+            
+            # Normalize the alpha channel to be in the range [0, 1]
+            alpha = a / 255.0
+            
+            # Define the region of interest (ROI) on the frame
+            y1, y2 = y_position, y_position + new_height
+            x1, x2 = x_position, x_position + new_width
+            
+            # Ensure the ROI is within the frame bounds
+            y1 = max(y1, 0)
+            x1 = max(x1, 0)
+            y2 = min(y2, frame.shape[0])
+            x2 = min(x2, frame.shape[1])
+            
+            # Calculate the corresponding region on the icon
+            icon_y1 = max(0, -y_position)
+            icon_x1 = max(0, -x_position)
+            icon_y2 = icon_y1 + (y2 - y1)
+            icon_x2 = icon_x1 + (x2 - x1)
+            
+            # Ensure the dimensions match
+            if icon_y2 > icon.shape[0]:
+                icon_y2 = icon.shape[0]
+            if icon_x2 > icon.shape[1]:
+                icon_x2 = icon.shape[1]
+            
+            # Extract the ROI from the frame
+            roi = frame[y1:y2, x1:x2]
+
+            # Extract the corresponding region from the icon
+            icon_roi = icon[icon_y1:icon_y2, icon_x1:icon_x2]
+
+            # Split the icon ROI into its channels
+            b, g, r, a = cv2.split(icon_roi)
+
+            # Normalize the alpha channel to be in the range [0, 1]
+            alpha = a / 255.0
+
+            # Blend the icon with the frame using the alpha mask
+            for c in range(3):  # Iterate over the B, G, R channels
+                roi[:, :, c] = (roi[:, :, c] * (1 - alpha) + icon_roi[:, :, c] * alpha).astype(np.uint8)
+
+            # Place the blended result back into the frame
+            frame[y1:y2, x1:x2] = roi
+        else:
+            # If the icon does not have an alpha channel, just paste it
+            y1 = max(y_position, 0)
+            x1 = max(x_position, 0)
+            y2 = min(y_position + new_height, frame.shape[0])
+            x2 = min(x_position + new_width, frame.shape[1])
+            
+            # Calculate the corresponding region on the icon
+            icon_y1 = max(0, -y_position)
+            icon_x1 = max(0, -x_position)
+            icon_y2 = icon_y1 + (y2 - y1)
+            icon_x2 = icon_x1 + (x2 - x1)
+            
+            # Ensure the dimensions match
+            if icon_y2 > icon.shape[0]:
+                icon_y2 = icon.shape[0]
+            if icon_x2 > icon.shape[1]:
+                icon_x2 = icon.shape[1]
+            
+            # Extract the corresponding region from the icon
+            icon_roi = icon[icon_y1:icon_y2, icon_x1:icon_x2]
+            
+            frame[y1:y2, x1:x2] = icon_roi
+ 
     def __draw_face_detection_rectangle_on(self, is_draw_scan_line:bool=False, frame:np.ndarray=None, stroke_color:tuple[int,int,int]=(0,0,0), stripe_stroke:int=1, bold_stroke:int=5) -> np.ndarray:
     
         #draw bounding edges
@@ -155,6 +281,56 @@ class Face:
 
             cv2.putText(frame, rule_text, (x_position, y_position), cv2.FONT_HERSHEY_SIMPLEX, text_size, text_color, text_thickness)
 
+    def __add_equipment_icons_main_face(self,frame):
+                
+        max_height = int((self.face_bbox[3] - self.face_bbox[1] )/4)+1
+
+        x_shift = 25
+        top_right_corner = (self.face_bbox[2], self.face_bbox[1])
+        y_shift = 0
+        if self.obeyed_rules["is_hairnet_worn"]:
+            self.__append_icon_on_frame(frame=frame, icon_name="green_hairnet", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1], max_width=100, max_height=max_height)
+        else:
+            self.__append_icon_on_frame(frame=frame, icon_name="red_hairnet", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1], max_width=100, max_height=max_height)
+        y_shift += max_height
+
+        if self.obeyed_rules["is_safety_google_worn"]:
+            self.__append_icon_on_frame(frame=frame, icon_name="green_goggles", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1]+y_shift, max_width=100, max_height=max_height)
+        else:
+            self.__append_icon_on_frame(frame=frame, icon_name="red_goggles", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1]+y_shift, max_width=100, max_height=max_height)
+        y_shift += max_height
+
+        if self.obeyed_rules["is_surgical_mask_worn"]:
+            self.__append_icon_on_frame(frame=frame, icon_name="green_surgical_mask", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1]+y_shift, max_width=100, max_height=max_height)
+            y_shift +=max_height
+
+        if self.obeyed_rules["is_beardnet_worn"]:
+            self.__append_icon_on_frame(frame=frame, icon_name="green_beardnet", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1]+y_shift, max_width=100, max_height=max_height)
+            y_shift += max_height
+
+    def _add_equipment_icons_secondary_faces(self, frame:np.ndarray):
+        max_height = int((self.face_bbox[3] - self.face_bbox[1] )/4)+1
+
+        x_shift = 25
+        top_right_corner = (self.face_bbox[2], self.face_bbox[1])
+        y_shift = 0
+        if self.obeyed_rules["is_hairnet_worn"]:
+            self.__append_icon_on_frame(frame=frame, icon_name="grey_hairnet", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1], max_width=100, max_height=max_height)
+            y_shift += max_height
+
+        if self.obeyed_rules["is_safety_google_worn"]:
+            self.__append_icon_on_frame(frame=frame, icon_name="grey_goggles", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1]+y_shift, max_width=100, max_height=max_height)
+            y_shift += max_height
+
+        if self.obeyed_rules["is_surgical_mask_worn"]:
+            self.__append_icon_on_frame(frame=frame, icon_name="grey_surgicalmask", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1]+y_shift, max_width=100, max_height=max_height)
+            y_shift +=max_height
+
+        if self.obeyed_rules["is_beardnet_worn"]:
+            self.__append_icon_on_frame(frame=frame, icon_name="grey_beardnet", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1]+y_shift, max_width=100, max_height=max_height)
+            y_shift += max_height
+
+
 class FaceManager:
 
     def __init__(self) -> None:
@@ -180,9 +356,17 @@ class FaceManager:
 
         for detection in face_and_equipment_detections:
             if detection[0] == "face":
-                face_object = Face()
-                face_object.set_face_bbox(detection[1])
-                self.current_face_objects.append(face_object)
+                should_create_new_face = True
+                for face in self.current_face_objects:
+                    overlap = self.__calculate_intersection(face.get_face_bbox(), detection[1])
+                    if overlap > min_overlap:
+                        should_create_new_face = False
+
+                if should_create_new_face:
+                    face_object = Face()
+                    face_object.set_face_bbox(detection[1])
+                    self.current_face_objects.append(face_object)
+
         self.number_of_active_faces = len(self.current_face_objects)
         
         #match faces with equipment detections
@@ -211,8 +395,21 @@ class FaceManager:
         return self.number_of_active_faces
     
     def draw_faces_on_frame(self, frame:np.ndarray) -> np.ndarray:
+        
+        main_face = None
+        max_area = 0
         for face in self.current_face_objects:
-            face.draw_face(frame=frame)
+            face_area = face.get_face_bbox_area()
+            if face_area > max_area:
+                max_area = face_area
+                main_face = face           
+
+        print("number of faces: ", self.number_of_active_faces)
+        for face in self.current_face_objects:
+            if face == main_face:
+                face.draw_face(frame=frame, is_main_face = True)
+            else:                
+                face.draw_face(frame=frame, is_main_face = False)
     
 
         

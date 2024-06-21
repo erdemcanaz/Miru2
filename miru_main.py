@@ -28,14 +28,11 @@ while True:
     # Read frame from webcam
     ret, frame = cap.read()
 
-    # Arduino communication test
-    # arduino_communicator_object.ensure_connection()
-    # if arduino_communicator_object.get_connection_status() == False:
-    #     cv2.putText(frame, "Arduino connection failed", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-    # else:
-    #     cv2.putText(frame, "Arduino connection successful", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-        
-    equipment_detector_object.predict_frame(frame, bbox_confidence=0.75)
+    #Arduino communication test
+    arduino_communicator_object.ensure_connection()
+    arduino_communicator_object.draw_arduino_connection_status_icon(frame)
+
+    equipment_detector_object.predict_frame(frame, bbox_confidence=0.6)
     equipment_formatted_predictions = equipment_detector_object.return_formatted_predictions_list()
 
     pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(frame,bbox_confidence=0.5)        
@@ -43,7 +40,6 @@ while True:
     
     face_and_equipment_detections = face_bbox_coords + equipment_formatted_predictions
     face_tracker_2_object.update_current_faces(face_and_equipment_detections)
-
 
     face_tracker_2_object.draw_faces_on_frame(frame=frame)
     

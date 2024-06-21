@@ -10,6 +10,8 @@ class SlideShow():
         self.last_time_slide_changed = 0
         self.current_slide_index = 0
 
+        self.last_time_opacity_started_to_increase = 0
+        self.is_opacity_increasing = True
         self.opacity = 0.0
 
         self.SLIDE_DURATION_S = slide_duration_s
@@ -37,9 +39,18 @@ class SlideShow():
         return return_slide_frame
     
     def increase_opacity(self):
+        if self.is_opacity_increasing == False:
+            self.last_time_opacity_started_to_increase = time.time()    
+
+        self.is_opacity_increasing = True
+
+        if time.time() - self.last_time_opacity_started_to_increase < 1.5:
+            return
+    
         self.opacity = min(1.0, self.opacity + 0.03)
 
     def decrease_opacity(self):        
+        self.is_opacity_increasing = False
         self.opacity = max(0.0, self.opacity - 0.05)
 
     def draw_slide_on_top_of_frame(self, frame:np.ndarray, slide_frame:np.ndarray):
