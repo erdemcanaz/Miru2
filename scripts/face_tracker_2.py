@@ -6,6 +6,9 @@ import pprint
 class Face:
 
     ICON_PATHS = {
+        "approval": "src/images/icons/approval.png",
+        "disapproval": "src/images/icons/disapproval.png",
+
         "grey_hairnet": "src/images/icons/grey_hairnet.png",
         "green_hairnet": "src/images/icons/green_hairnet.png",
         "red_hairnet": "src/images/icons/red_hairnet.png",
@@ -103,7 +106,7 @@ class Face:
             stroke_color = (108,208,142) if self.is_allowed_to_pass() else (82,82,255) #green or red
             self.__draw_face_detection_rectangle_on(is_draw_scan_line=True, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)   
             self.__add_equipment_icons_main_face(frame=frame)
-
+            self.__add_approval_disapproval_icons(frame=frame, is_approved=self.is_allowed_to_pass(), max_width=75, max_height=75)
         
         else:
             stroke_color = (186,186,186)
@@ -327,15 +330,23 @@ class Face:
             y_shift += max_height
 
         if self.obeyed_rules["is_surgical_mask_worn"]:
-            self.__append_icon_on_frame(frame=frame, icon_name="grey_surgicalmask", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1]+y_shift, max_width=100, max_height=max_height)
+            self.__append_icon_on_frame(frame=frame, icon_name="grey_surgical_mask", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1]+y_shift, max_width=100, max_height=max_height)
             y_shift +=max_height
 
         if self.obeyed_rules["is_beardnet_worn"]:
             self.__append_icon_on_frame(frame=frame, icon_name="grey_beardnet", x_position=top_right_corner[0]+x_shift, y_position=top_right_corner[1]+y_shift, max_width=100, max_height=max_height)
             y_shift += max_height
 
+    def __add_approval_disapproval_icons(self, frame:np.ndarray, is_approved:bool, max_width:int, max_height:int) -> np.ndarray:
+        icon_name = "approval" if is_approved else "disapproval"
+        x_position = self.face_bbox[0] - 20
+        y_position = self.face_bbox[1] - 20
+        return self.__append_icon_on_frame(frame=frame, icon_name=icon_name, x_position=x_position, y_position=y_position, max_width=max_width, max_height=max_height)
 
 class FaceManager:
+    ICON_PATHS = {
+        "information": "src/images/popups/information.png",
+    }
 
     def __init__(self) -> None:
         self.current_face_objects = None #list of Face objects
@@ -398,6 +409,99 @@ class FaceManager:
     def get_number_of_active_faces(self) -> int:
         return self.number_of_active_faces
     
+    def __append_icon_on_frame(self, frame: np.ndarray=None, icon_name: str=None, x_position: int=None, y_position: int=None, max_width: int=None, max_height: int=None) -> np.ndarray:
+        # Read the icon with the alpha channel
+        try:
+            icon = cv2.imread(FaceManager.ICON_PATHS[icon_name], cv2.IMREAD_UNCHANGED)
+
+            # Get the dimensions of the icon
+            icon_height, icon_width = icon.shape[:2]
+            
+            # Calculate the scaling factor to maintain aspect ratio
+            scaling_factor = min(max_width / icon_width, max_height / icon_height)
+            
+            # Calculate the new size maintaining the aspect ratio
+            new_width = int(icon_width * scaling_factor)
+            new_height = int(icon_height * scaling_factor)
+            
+            # Resize the icon
+            icon = cv2.resize(icon, (new_width, new_height), interpolation=cv2.INTER_AREA)
+            
+            # Check if the icon has an alpha channel
+            if icon.shape[2] == 4:
+                # Split the icon into its channels
+                b, g, r, a = cv2.split(icon)
+                
+                # Normalize the alpha channel to be in the range [0, 1]
+                alpha = a / 255.0
+                
+                # Define the region of interest (ROI) on the frame
+                y1, y2 = y_position, y_position + new_height
+                x1, x2 = x_position, x_position + new_width
+                
+                # Ensure the ROI is within the frame bounds
+                y1 = max(y1, 0)
+                x1 = max(x1, 0)
+                y2 = min(y2, frame.shape[0])
+                x2 = min(x2, frame.shape[1])
+                
+                # Calculate the corresponding region on the icon
+                icon_y1 = max(0, -y_position)
+                icon_x1 = max(0, -x_position)
+                icon_y2 = icon_y1 + (y2 - y1)
+                icon_x2 = icon_x1 + (x2 - x1)
+                
+                # Ensure the dimensions match
+                if icon_y2 > icon.shape[0]:
+                    icon_y2 = icon.shape[0]
+                if icon_x2 > icon.shape[1]:
+                    icon_x2 = icon.shape[1]
+                
+                # Extract the ROI from the frame
+                roi = frame[y1:y2, x1:x2]
+
+                # Extract the corresponding region from the icon
+                icon_roi = icon[icon_y1:icon_y2, icon_x1:icon_x2]
+
+                # Split the icon ROI into its channels
+                b, g, r, a = cv2.split(icon_roi)
+
+                # Normalize the alpha channel to be in the range [0, 1]
+                alpha = a / 255.0
+
+                # Blend the icon with the frame using the alpha mask
+                for c in range(3):  # Iterate over the B, G, R channels
+                    roi[:, :, c] = (roi[:, :, c] * (1 - alpha) + icon_roi[:, :, c] * alpha).astype(np.uint8)
+
+                # Place the blended result back into the frame
+                frame[y1:y2, x1:x2] = roi
+            else:
+                # If the icon does not have an alpha channel, just paste it
+                y1 = max(y_position, 0)
+                x1 = max(x_position, 0)
+                y2 = min(y_position + new_height, frame.shape[0])
+                x2 = min(x_position + new_width, frame.shape[1])
+                
+                # Calculate the corresponding region on the icon
+                icon_y1 = max(0, -y_position)
+                icon_x1 = max(0, -x_position)
+                icon_y2 = icon_y1 + (y2 - y1)
+                icon_x2 = icon_x1 + (x2 - x1)
+                
+                # Ensure the dimensions match
+                if icon_y2 > icon.shape[0]:
+                    icon_y2 = icon.shape[0]
+                if icon_x2 > icon.shape[1]:
+                    icon_x2 = icon.shape[1]
+                
+                # Extract the corresponding region from the icon
+                icon_roi = icon[icon_y1:icon_y2, icon_x1:icon_x2]
+                
+                frame[y1:y2, x1:x2] = icon_roi
+
+        except: #TODO: fix this exception. It is due to icon is out of bounds of the frame. Not a big deal but should be fixed.
+            print(f"Error: Could not read icon {icon_name} from path {Face.ICON_PATHS[icon_name]}")
+
     def draw_faces_on_frame(self, frame:np.ndarray) -> np.ndarray:
         
         main_face = None
@@ -414,5 +518,5 @@ class FaceManager:
             else:                
                 face.draw_face(frame=frame, is_main_face = False)
     
-
+        self.__append_icon_on_frame(frame=frame, icon_name="information", x_position=50, y_position=100, max_width=400, max_height=450)
         
