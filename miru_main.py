@@ -38,13 +38,9 @@ while True:
     pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(frame,bbox_confidence=0.5)        
     face_bbox_coords = pose_detector_object.return_formatted_predictions_list(frame = frame, predictions= pose_pred_dicts, keypoint_confidence_threshold = 0.85)
     
-    face_and_equipment_detections = face_bbox_coords + equipment_formatted_predictions
+    face_and_equipment_detections = face_bbox_coords + equipment_formatted_predictions    
     face_tracker_2_object.update_current_faces(face_and_equipment_detections)
-
-    face_tracker_2_object.draw_faces_on_frame(frame=frame)
-    
-    # face_tracker_object.update_detected_faces(frame=frame, detected_face_bbox_coords=face_bbox_coords, equipment_detections= equipment_pred_dicts) # during initialization of detected faces, their rule appliences are also evaluated.
-    # face_tracker_object.draw_faces_on_frame(frame=frame)
+    face_tracker_2_object.draw_faces_on_frame(frame=frame) 
 
     # if face_tracker_object.should_turn_on_turnstiles():
     #     arduino_communicator_object.send_activate_turnstile_signal()

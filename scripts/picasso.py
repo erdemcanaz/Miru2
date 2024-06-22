@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 
 IMAGE_PATHS = {
+    "information": "src/images/popups/information.png",
+    
     "approval": "src/images/icons/approval.png",
     "disapproval": "src/images/icons/disapproval.png",
 
