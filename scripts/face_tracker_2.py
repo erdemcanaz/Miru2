@@ -1,7 +1,7 @@
 import numpy as np
 import cv2 
 import time
-import pprint
+from scripts import picasso
 
 class Face:
 
@@ -341,7 +341,7 @@ class Face:
         icon_name = "approval" if is_approved else "disapproval"
         x_position = self.face_bbox[0] - 20
         y_position = self.face_bbox[1] - 20
-        return self.__append_icon_on_frame(frame=frame, icon_name=icon_name, x_position=x_position, y_position=y_position, max_width=max_width, max_height=max_height)
+        picasso.draw_image_on_frame(frame=frame, image_name=icon_name, x=x_position, y=y_position, width=max_width, height=max_height, maintain_aspect_ratio=True)
 
 class FaceManager:
     ICON_PATHS = {
