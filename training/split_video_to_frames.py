@@ -45,4 +45,4 @@ def split_video_to_frames(video_path:str=None, image_export_path:str=None, frame
 video_path = input("Enter video path: ")
 image_export_path = input("Enter image export folder path: ")
 
-split_video_to_frames(video_path=video_path, image_export_path = image_export_path, frame_skip = 30)
+split_video_to_frames(video_path=video_path, image_export_path = image_export_path, frame_skip = 70)

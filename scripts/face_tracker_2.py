@@ -274,9 +274,9 @@ class FaceManager:
                 overlap = self.__calculate_intersection(face.get_face_bbox(), face_and_equipment_detection[1])
                 
                 if overlap > min_overlap:
-                    if equipment_type == "net":
+                    if equipment_type in ["white_net", "blue_net"]:
                         face.append_net_bboxes(equipment_bbox)
-                    elif equipment_type == "surgical_mask":
+                    elif equipment_type in ["white_surgical_mask", "blue_surgical_mask"]:
                         face.append_surical_mask_bboxes(equipment_bbox)
                     elif equipment_type == "safety_goggles":
                         face.append_goggles_bboxes(equipment_bbox)                

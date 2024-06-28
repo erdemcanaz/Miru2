@@ -2,8 +2,10 @@ local/*
 env/*
 !local/.gitkeep
 
-trained_yolo_models/*
 !trained_yolo_models/.gitkeep
 
 
 *__pycache__
+*.zip
+*.rar
+yolov8n.pt

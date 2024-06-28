@@ -2,7 +2,7 @@ import cv2
 import pose_detector
 import uuid
 
-def split_frame_with_persons_from_video(data_name:str =  None, video_path:str=None, image_export_path:str=None, frame_skip:int= 30, is_manual:bool = False, desired_image_edge_lengths:int = 200):
+def split_frame_with_persons_from_video(data_name:str =  None, video_path:str=None, image_export_path:str=None, frame_skip:int= 30, is_manual:bool = False):
     pose_detector_object = pose_detector.PoseDetector(model_name="yolov8n-pose")
 
     cap = cv2.VideoCapture(video_path)
@@ -70,4 +70,5 @@ if __name__ == "__main__":
     image_export_path = input("Enter image export folder path: ")
     data_name = input("Enter data-name: ")
 
-    split_frame_with_persons_from_video(data_name= data_name, video_path=video_path, image_export_path = image_export_path, frame_skip = 50, is_manual = False, desired_image_edge_lengths= 250)
+    split_frame_with_persons_from_video(data_name= data_name, video_path=video_path, image_export_path = image_export_path, frame_skip = 30, is_manual = False)
+

@@ -4,7 +4,8 @@ import copy
 class EquipmentDetector():
 
     EQUIPMENT_MODEL_PATHS = {
-        "net_google_mask": "trained_yolo_models/net_google_mask.pt"
+        "net_google_mask": "trained_yolo_models/net_google_mask.pt",
+        "net_google_mask_28_06_2024": "trained_yolo_models/net_google_mask_28_06_2024.pt"
     }
     def __init__(self, model_name : str = None) -> None:
         self.MODEL_PATH = EquipmentDetector.EQUIPMENT_MODEL_PATHS[model_name]
@@ -25,7 +26,7 @@ class EquipmentDetector():
     def predict_frame(self, frame, bbox_confidence = 0.5) -> None:
         self.recent_prediction_results = []
         
-        results = self.yolo_object(frame, task = "pose", verbose= False)[0]
+        results = self.yolo_object(frame, task = "detect", verbose= False)[0]
         for i, result in enumerate(results):
             boxes = result.boxes
             box_cls_no = int(boxes.cls.cpu().numpy()[0])
