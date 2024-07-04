@@ -1,23 +1,46 @@
 from typing import List, Dict, Tuple #for python3.8 compatibility
 import pprint
+import picasso 
+import numpy as np
+import cv2
+import time
 
 class Face:
     def __init__(self, age_limit:int = 5, sample_size:int = 10, face_bbox:List[Tuple[int,int,int,int]] = None):
         self.AGE_LIMIT = age_limit
         self.SAMPLE_SIZE = sample_size
+        self.EQUIPMENT_CONFIDENCE_THRESHOLDS = {
+            "hair_net":0.5,
+            "beard_net":0.5,
+            "safety_goggles":0.5,
+            "blue_surgical_mask":0.5,
+            "white_surgical_mask":0.5
+        }
+
         self.age:int = 0 #number of iterations since the face was last detected
         self.face_bbox:list = face_bbox #coordinates of the face bounding box in the format (x1,y1,x2,y2)
 
-        self.linked_detections = {
+        self.obeyed_rules = {
+            "is_hairnet_worn": False,
+            "is_safety_google_worn": False,
+            "is_beard_present": False,
+            "is_beardnet_worn": False,
+            "is_surgical_mask_worn": False,
+        }
+
+        self.equipment_detection_confidence_samples = {
             "hair_net":[0]*self.SAMPLE_SIZE,
             "beard_net":[0]*self.SAMPLE_SIZE,
             "safety_goggles":[0]*self.SAMPLE_SIZE,
             "blue_surgical_mask":[0]*self.SAMPLE_SIZE,
             "white_surgical_mask":[0]*self.SAMPLE_SIZE
-        } #detection_name: [confidence1, confidence2, ...]                  
+        }                
         
     def get_face_bbox(self) -> List[Tuple[int,int,int,int]]:
         return self.face_bbox
+    
+    def get_bbox_area(self) -> int:
+        return (self.face_bbox[2] - self.face_bbox[0]) * (self.face_bbox[3] - self.face_bbox[1])
     
     def update_face_bbox(self, face_bbox:List[Tuple[int,int,int,int]]):
         self.age = 0
@@ -42,23 +65,168 @@ class Face:
 
     def append_detection_confidences(self, update_dict:Dict):
         for detection_class, confidence in update_dict.items():
-            self.linked_detections[detection_class].pop(0)        
-            self.linked_detections[detection_class].append(confidence)        
+            self.equipment_detection_confidence_samples[detection_class].pop(0)        
+            self.equipment_detection_confidence_samples[detection_class].append(confidence)        
 
-        pprint.pprint(self.linked_detections)
+    def update_obeyed_rules(self) -> None:
+       
+        self.obeyed_rules = {
+            "is_hairnet_worn": False,
+            "is_safety_google_worn": False,
+            "is_beard_present": False,
+            "is_beardnet_worn": False,
+            "is_surgical_mask_worn": False,
+        }
 
-    def get_meaned_detection_confidence(self, detection_name:str) -> float:
-        if detection_name not in self.linked_detections:
-            raise ValueError(f"No detection named {detection_name} found")
-               
-        return sum(self.linked_detections[detection_name]) / len(self.linked_detections[detection_name]) 
-    
+        hairnet_mean_confidence = sum(self.equipment_detection_confidence_samples["hair_net"]) / len(self.equipment_detection_confidence_samples["hair_net"])
+        beardnet_mean_confidence = sum(self.equipment_detection_confidence_samples["beard_net"]) / len(self.equipment_detection_confidence_samples["beard_net"])
+        safety_goggles_mean_confidence = sum(self.equipment_detection_confidence_samples["safety_goggles"]) / len(self.equipment_detection_confidence_samples["safety_goggles"])
+        blue_surgical_mask_mean_confidence = sum(self.equipment_detection_confidence_samples["blue_surgical_mask"]) / len(self.equipment_detection_confidence_samples["blue_surgical_mask"])
+        white_surgical_mask_mean_confidence = sum(self.equipment_detection_confidence_samples["white_surgical_mask"]) / len(self.equipment_detection_confidence_samples["white_surgical_mask"])
+
+        if hairnet_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["hair_net"]:
+            self.obeyed_rules["is_hairnet_worn"] = True
+        if safety_goggles_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["safety_goggles"]:
+            self.obeyed_rules["is_safety_google_worn"] = True
+        if beardnet_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["beard_net"]:
+            self.obeyed_rules["is_beardnet_worn"] = True
+        if blue_surgical_mask_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["blue_surgical_mask"] or white_surgical_mask_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["white_surgical_mask"]:
+            self.obeyed_rules["is_surgical_mask_worn"] = True
+        if True:
+            self.obeyed_rules["is_beard_present"] = False #TODO: Implement beard detection
+
+        pprint.pprint(self.obeyed_rules)
+
     def increase_age(self):
         self.age += 1
 
     def should_be_deleted(self) -> bool:
         return self.age > self.AGE_LIMIT
+
+    def is_allowed_to_pass(self) -> bool:
+        if not (self.obeyed_rules["is_hairnet_worn"] and self.obeyed_rules["is_safety_google_worn"]):
+            return False
+        if self.obeyed_rules["is_beard_present"] and not (self.obeyed_rules["is_beardnet_worn"] or self.obeyed_rules["is_surgical_mask_worn"]):
+            return False
+            
+        return True
+
     
+    def draw_face(self, frame:np.ndarray=None, is_main_face:bool = None, stripe_stroke:int=1, bold_stroke:int=5):
+        if is_main_face:
+            stroke_color = (108,208,142) if self.is_allowed_to_pass() else (82,82,255) #green or red
+            self.__draw_face_detection_rectangle_on(is_draw_scan_line=True, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)   
+            self.__add_equipment_icons_main_face(frame=frame)
+            self.__add_approval_disapproval_icons(frame=frame, is_approved=self.is_allowed_to_pass(), max_width=75, max_height=75)
+        
+        else:
+            stroke_color = (186,186,186)
+            self.__draw_face_detection_rectangle_on(is_draw_scan_line=False, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)
+            self._add_equipment_icons_secondary_faces(frame=frame)
+            
+    def __draw_face_detection_rectangle_on(self, is_draw_scan_line:bool=False, frame:np.ndarray=None, stroke_color:Tuple[int,int,int]=(0,0,0), stripe_stroke:int=1, bold_stroke:int=5) -> np.ndarray:
+    
+        #draw bounding edges
+        cv2.rectangle(frame, (self.face_bbox[0],self.face_bbox[1]),  (self.face_bbox[2],self.face_bbox[3]), stroke_color, stripe_stroke)
+
+        #draw bold corners
+        bbox_coordinates = [(self.face_bbox[0],self.face_bbox[1] ),(self.face_bbox[2],self.face_bbox[3] )]
+        width =  bbox_coordinates[1][0] -  bbox_coordinates[0][0]
+        height =  bbox_coordinates[1][1] -  bbox_coordinates[0][1]
+
+        topleft_corner =  bbox_coordinates[0]
+        topleft_1 = (topleft_corner[0]+width//3, topleft_corner[1])
+        topleft_2 = (topleft_corner[0], topleft_corner[1]+height//3)                
+        cv2.line(frame, topleft_corner, topleft_1, stroke_color, bold_stroke)
+        cv2.line(frame, topleft_corner, topleft_2, stroke_color, bold_stroke)
+
+        topright_corner = ( bbox_coordinates[1][0],  bbox_coordinates[0][1])
+        topright_1 = (topright_corner[0]-width//3, topright_corner[1])
+        topright_2 = (topright_corner[0], topright_corner[1]+height//3)
+        cv2.line(frame, topright_corner, topright_1, stroke_color, bold_stroke)
+        cv2.line(frame, topright_corner, topright_2, stroke_color, bold_stroke)
+
+        bottomleft_corner = ( bbox_coordinates[0][0],  bbox_coordinates[1][1])
+        bottomleft_1 = (bottomleft_corner[0]+width//3, bottomleft_corner[1])
+        bottomleft_2 = (bottomleft_corner[0], bottomleft_corner[1]-height//3)
+        cv2.line(frame, bottomleft_corner, bottomleft_1, stroke_color, bold_stroke)
+        cv2.line(frame, bottomleft_corner, bottomleft_2, stroke_color, bold_stroke)
+
+        bottomright_corner =  bbox_coordinates[1]
+        bottomright_1 = (bottomright_corner[0]-width//3, bottomright_corner[1])
+        bottomright_2 = (bottomright_corner[0], bottomright_corner[1]-height//3)
+        cv2.line(frame, bottomright_corner, bottomright_1, stroke_color, bold_stroke)
+        cv2.line(frame, bottomright_corner, bottomright_2, stroke_color, bold_stroke)
+
+        #draw scanning line 
+        if is_draw_scan_line:
+            percentage = time.time()%1
+            if percentage < 0.5:
+                del_width = int(width * 2*percentage)
+            else:
+                del_width = int(width * 2*(1-percentage))
+
+            line_top = ( bbox_coordinates[0][0]+del_width,  bbox_coordinates[0][1])
+            line_bottom = ( bbox_coordinates[0][0]+del_width,  bbox_coordinates[1][1])
+            cv2.line(frame, line_top, line_bottom, stroke_color, stripe_stroke)
+            
+        return frame
+
+    def __add_equipment_icons_main_face(self,frame):
+                
+        max_height = int((self.face_bbox[3] - self.face_bbox[1] )/4)+1
+
+        x_shift = 25
+        top_right_corner = (self.face_bbox[2], self.face_bbox[1])
+        y_shift = 0
+        if self.obeyed_rules["is_hairnet_worn"]:
+            picasso.draw_image_on_frame(frame=frame, image_name="green_hairnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1], width=100, height=max_height, maintain_aspect_ratio=True)
+        else:
+            picasso.draw_image_on_frame(frame=frame, image_name="red_hairnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1], width=100, height=max_height, maintain_aspect_ratio=True)
+        y_shift += max_height
+
+        if self.obeyed_rules["is_safety_google_worn"]:
+            picasso.draw_image_on_frame(frame=frame, image_name="green_goggles", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
+        else:
+            picasso.draw_image_on_frame(frame=frame, image_name="red_goggles", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
+        y_shift += max_height
+
+        if self.obeyed_rules["is_surgical_mask_worn"]:
+            picasso.draw_image_on_frame(frame=frame, image_name="green_surgical_mask", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
+            y_shift +=max_height
+
+        if self.obeyed_rules["is_beardnet_worn"]:
+            picasso.draw_image_on_frame(frame=frame, image_name="green_beardnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
+            y_shift += max_height
+
+    def _add_equipment_icons_secondary_faces(self, frame:np.ndarray):
+        max_height = int((self.face_bbox[3] - self.face_bbox[1] )/4)+1
+
+        x_shift = 25
+        top_right_corner = (self.face_bbox[2], self.face_bbox[1])
+        y_shift = 0
+        if self.obeyed_rules["is_hairnet_worn"]:
+            picasso.draw_image_on_frame(frame=frame, image_name="grey_hairnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1], width=100, height=max_height, maintain_aspect_ratio=True)
+            y_shift += max_height
+
+        if self.obeyed_rules["is_safety_google_worn"]:
+            picasso.draw_image_on_frame(frame=frame, image_name="grey_goggles", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
+            y_shift += max_height
+
+        if self.obeyed_rules["is_surgical_mask_worn"]:
+            picasso.draw_image_on_frame(frame=frame, image_name="grey_surgical_mask", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
+            y_shift +=max_height
+
+        if self.obeyed_rules["is_beardnet_worn"]:
+            picasso.draw_image_on_frame(frame=frame, image_name="grey_beardnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
+            y_shift += max_height
+
+    def __add_approval_disapproval_icons(self, frame:np.ndarray, is_approved:bool, max_width:int, max_height:int) -> np.ndarray:
+        icon_name = "approval" if is_approved else "disapproval"
+        x_position = self.face_bbox[0] - 20
+        y_position = self.face_bbox[1] - 20
+        picasso.draw_image_on_frame(frame=frame, image_name=icon_name, x=x_position, y=y_position, width=max_width, height=max_height, maintain_aspect_ratio=True)
+
 
 class FaceTrackerManager:
     def __init__(self, face_update_overlap_threshold:float = 0.5, equipment_update_overlap_threshold:float = 0.5):
@@ -111,7 +279,7 @@ class FaceTrackerManager:
         for face in faces_to_delete:
             self.face_objects.remove(face)
     
-    def update_face_equipments(self, equipment_predictions: List[Tuple[str, float, Tuple[int, int, int, int]]]):
+    def update_face_equipments_detection_confidences_and_obeyed_rules(self, equipment_predictions: List[Tuple[str, float, Tuple[int, int, int, int]]]):
             for face in self.face_objects:                
                 detected_equipments = {
                     "hair_net":0,
@@ -125,14 +293,42 @@ class FaceTrackerManager:
                     equipment_class = equipment_prediction[0]      
                     equipment_bbox = equipment_prediction[2]
                     if self.__calculate_overlap(face.get_face_bbox(), equipment_bbox) > self.EQUIPMENT_UPDATE_OVERLAP_THRESHOLD:
-                        print(f"Updating {equipment_prediction[0]} confidence for face bbox {face.get_face_bbox()}, {face.transform_class_name(equipment_class, equipment_bbox)}")
                         transformed_class_name = face.transform_class_name(equipment_class, equipment_bbox)
                         detected_equipments[transformed_class_name] = max(equipment_prediction[1], detected_equipments[transformed_class_name])
 
                 face.append_detection_confidences(detected_equipments)
+                face.update_obeyed_rules()
 
+    def draw_faces_on_frame(self, frame:np.ndarray) -> np.ndarray:
+        
+        main_face = None
+        max_area = 0
+        for face in self.face_objects:
+            face_area = face.get_bbox_area()
+            if face_area > max_area:
+                max_area = face_area
+                main_face = face           
 
-                
+        for face in self.face_objects:
+            if face == main_face:
+                face.draw_face(frame=frame, is_main_face = True)
+            else:                
+                face.draw_face(frame=frame, is_main_face = False)
+    
+        #picasso.draw_image_on_frame(frame=frame, image_name="information", x=50, y=50, width=100, height=100, maintain_aspect_ratio=True)
+        
+
+    def should_turn_on_turnstiles(self) -> bool:
+        should_turn_on = False
+        max_face_area = 0
+
+        for face in self.face_objects:
+            face_area = face.get_bbox_area()
+            if face_area > max_face_area:
+                max_area = face_area
+                should_turn_on = face.is_allowed_to_pass()
+
+        return should_turn_on           
 
                         
 

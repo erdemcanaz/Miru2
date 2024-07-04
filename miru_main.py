@@ -47,23 +47,25 @@ while True:
     arduino_communicator_object.ensure_connection()
     arduino_communicator_object.draw_arduino_connection_status_icon(frame)
     
-    pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(frame,bbox_confidence=0.3)           
+    pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(frame,bbox_confidence=0.35)           
     face_bbox_coords = pose_detector_object.return_face_bboxes_list(frame = frame, predictions= pose_pred_dicts, keypoint_confidence_threshold = 0.80)
     face_manager_with_memory_object.update_face_bboxes(face_bbox_coords)
 
     # [ ["class_name", "confidence", "bbox_coords"], ...]
-    equipment_detector_object.predict_frame(frame, bbox_confidence=0.6)
+    equipment_detector_object.predict_frame(frame, bbox_confidence=0.5)
     equipment_formatted_predictions = equipment_detector_object.return_formatted_predictions_list()
-    face_manager_with_memory_object.update_face_equipments(equipment_formatted_predictions)
+    face_manager_with_memory_object.update_face_equipments_detection_confidences_and_obeyed_rules(equipment_formatted_predictions)
 
-    # face_tracker_2_object.update_face_bboxes(face_bbox_coords)
+    cv2.resize(frame, (1920, 1080))
+    face_manager_with_memory_object.draw_faces_on_frame(frame)
 
-    # if face_tracker_object.should_turn_on_turnstiles():
+    # # Send signals to arduino
+    # if face_manager_with_memory_object.should_turn_on_turnstiles():
     #     arduino_communicator_object.send_activate_turnstile_signal()
     # else:
     #     arduino_communicator_object.send_ping_to_arduino()
 
-    # slide related operations    
+    # slide related operations 
     if slides_show_object.should_change_slide():
         slides_show_object.update_current_slide()
 
