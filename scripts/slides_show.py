@@ -2,6 +2,7 @@ import os, time
 import cv2
 import numpy as np
 import copy
+from typing import List, Dict, Tuple #for python3.8 compatibility
 
 class SlideShow():
 
@@ -34,7 +35,7 @@ class SlideShow():
         self.current_slide_index = (self.current_slide_index + 1) % len(self.SLIDE_IMAGES)
         self.last_time_slide_changed = time.time()
 
-    def get_slide_images(self, width:int, height:int) -> list[np.ndarray]:
+    def get_slide_images(self, width:int, height:int) -> List[np.ndarray]:
         return_slide_frame = cv2.resize(copy.deepcopy(self.SLIDE_IMAGES[self.current_slide_index]), (width, height))
         return return_slide_frame
     
