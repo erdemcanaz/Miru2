@@ -6,15 +6,15 @@ import cv2
 import time
 
 class Face:
-    def __init__(self, age_limit:int = 5, sample_size:int = 10, face_bbox:List[Tuple[int,int,int,int]] = None):
+    def __init__(self, age_limit:int = 5, sample_size:int = 30, face_bbox:List[Tuple[int,int,int,int]] = None):
         self.AGE_LIMIT = age_limit
         self.SAMPLE_SIZE = sample_size
         self.EQUIPMENT_CONFIDENCE_THRESHOLDS = {
-            "hair_net":0.5,
-            "beard_net":0.5,
-            "safety_goggles":0.5,
-            "blue_surgical_mask":0.5,
-            "white_surgical_mask":0.5
+            "hair_net":[0.35,0.75],
+            "beard_net":[0.35,0.75],
+            "safety_goggles":[0.35,0.75],
+            "blue_surgical_mask":[0.35,0.75],
+            "white_surgical_mask":[0.35,0.75],
         }
 
         self.age:int = 0 #number of iterations since the face was last detected
@@ -84,18 +84,33 @@ class Face:
         blue_surgical_mask_mean_confidence = sum(self.equipment_detection_confidence_samples["blue_surgical_mask"]) / len(self.equipment_detection_confidence_samples["blue_surgical_mask"])
         white_surgical_mask_mean_confidence = sum(self.equipment_detection_confidence_samples["white_surgical_mask"]) / len(self.equipment_detection_confidence_samples["white_surgical_mask"])
 
-        if hairnet_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["hair_net"]:
-            self.obeyed_rules["is_hairnet_worn"] = True
-        if safety_goggles_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["safety_goggles"]:
-            self.obeyed_rules["is_safety_google_worn"] = True
-        if beardnet_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["beard_net"]:
-            self.obeyed_rules["is_beardnet_worn"] = True
-        if blue_surgical_mask_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["blue_surgical_mask"] or white_surgical_mask_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["white_surgical_mask"]:
-            self.obeyed_rules["is_surgical_mask_worn"] = True
+        #hairnet
+        if self.obeyed_rules["is_hairnet_worn"] and hairnet_mean_confidence < self.EQUIPMENT_CONFIDENCE_THRESHOLDS["hair_net"][0]:
+                self.obeyed_rules["is_hairnet_worn"] = False
+        elif not self.obeyed_rules["is_hairnet_worn"] and hairnet_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["hair_net"][1]:
+                self.obeyed_rules["is_hairnet_worn"] = True
+
+        #safety goggles
+        if self.obeyed_rules["is_safety_google_worn"] and safety_goggles_mean_confidence < self.EQUIPMENT_CONFIDENCE_THRESHOLDS["safety_goggles"][0]:
+                self.obeyed_rules["is_safety_google_worn"] = False
+        elif not self.obeyed_rules["is_safety_google_worn"] and safety_goggles_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["safety_goggles"][1]:
+                self.obeyed_rules["is_safety_google_worn"] = True
+
+        #beardnet
+        if self.obeyed_rules["is_beardnet_worn"] and beardnet_mean_confidence < self.EQUIPMENT_CONFIDENCE_THRESHOLDS["beard_net"][0]:
+                self.obeyed_rules["is_beardnet_worn"] = False
+        elif not self.obeyed_rules["is_beardnet_worn"] and beardnet_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["beard_net"][1]:
+                self.obeyed_rules["is_beardnet_worn"] = True
+
+        #surgical mask
+        if self.obeyed_rules["is_surgical_mask_worn"] and (blue_surgical_mask_mean_confidence < self.EQUIPMENT_CONFIDENCE_THRESHOLDS["blue_surgical_mask"][0] and white_surgical_mask_mean_confidence < self.EQUIPMENT_CONFIDENCE_THRESHOLDS["white_surgical_mask"][0]):
+                self.obeyed_rules["is_surgical_mask_worn"] = False
+        elif not self.obeyed_rules["is_surgical_mask_worn"] and (blue_surgical_mask_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["blue_surgical_mask"][1] or white_surgical_mask_mean_confidence > self.EQUIPMENT_CONFIDENCE_THRESHOLDS["white_surgical_mask"][1]):
+                self.obeyed_rules["is_surgical_mask_worn"] = True
+
+        #beard detection
         if True:
             self.obeyed_rules["is_beard_present"] = False #TODO: Implement beard detection
-
-        pprint.pprint(self.obeyed_rules)
 
     def increase_age(self):
         self.age += 1
