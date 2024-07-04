@@ -1,4 +1,5 @@
 from ultralytics import YOLO
+from typing import List, Dict
 import cv2,math,time,os
 import time,pprint,copy
 import numpy as np
