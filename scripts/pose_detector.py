@@ -1,5 +1,5 @@
 from ultralytics import YOLO
-from typing import List, Dict #for python3.8 compatibility
+from typing import List, Dict, Tuple #for python3.8 compatibility
 import cv2,math,time,os
 import time,pprint,copy
 import numpy as np
@@ -89,7 +89,7 @@ class PoseDetector():
 
         return self.recent_prediction_results
     
-    def return_formatted_predictions_list(self, frame:np.ndarray = None, predictions:list[dict] = None, keypoint_confidence_threshold:float = 0.75) -> list[tuple[int,int],tuple[int,int]]:      
+    def return_formatted_predictions_list(self, frame:np.ndarray = None, predictions:list[dict] = None, keypoint_confidence_threshold:float = 0.75) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:      
         if predictions is None:
             raise ValueError("No detections provided")
         
