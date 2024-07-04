@@ -132,7 +132,10 @@ class Face:
             stroke_color = (108,208,142) if self.is_allowed_to_pass() else (82,82,255) #green or red
             self.__draw_face_detection_rectangle_on(is_draw_scan_line=True, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)   
             self.__add_equipment_icons_main_face(frame=frame)
-            self.__add_approval_disapproval_icons(frame=frame, is_approved=self.is_allowed_to_pass(), max_width=75, max_height=75)
+
+            max_width = self.face_bbox[2] - self.face_bbox[0]
+            max_height = self.face_bbox[3] - self.face_bbox[1]
+            self.__add_approval_disapproval_icons(frame=frame, is_approved=self.is_allowed_to_pass(), max_width=max_width, max_height=max_height)
         
         else:
             stroke_color = (186,186,186)

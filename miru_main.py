@@ -1,5 +1,6 @@
 import sys
 import os
+import copy 
 
 # Determine the absolute path to the directory containing your scripts folder
 project_directory = os.path.dirname(os.path.abspath(__file__))
@@ -43,21 +44,19 @@ while True:
         print("Error reading frame")
         continue
 
-    #Arduino communication test
-    arduino_communicator_object.ensure_connection()
-    arduino_communicator_object.draw_arduino_connection_status_icon(frame)
-    
     pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(frame,bbox_confidence=0.35)           
     face_bbox_coords = pose_detector_object.return_face_bboxes_list(frame = frame, predictions= pose_pred_dicts, keypoint_confidence_threshold = 0.80)
     face_manager_with_memory_object.update_face_bboxes(face_bbox_coords)
 
-    # [ ["class_name", "confidence", "bbox_coords"], ...]
     equipment_detector_object.predict_frame(frame, bbox_confidence=0.5)
     equipment_formatted_predictions = equipment_detector_object.return_formatted_predictions_list()
     face_manager_with_memory_object.update_face_equipments_detection_confidences_and_obeyed_rules(equipment_formatted_predictions)
 
-    cv2.resize(frame, (1920, 1080))
     face_manager_with_memory_object.draw_faces_on_frame(frame)
+
+    #Arduino communication test
+    arduino_communicator_object.ensure_connection()
+    arduino_communicator_object.draw_arduino_connection_status_icon(frame)
 
     # # Send signals to arduino
     # if face_manager_with_memory_object.should_turn_on_turnstiles():
