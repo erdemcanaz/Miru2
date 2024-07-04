@@ -2,6 +2,7 @@ import numpy as np
 import cv2 
 import time
 from scripts import picasso
+from typing import List, Dict, Tuple #for python3.8 compatibility
 
 class Face:
 
@@ -12,7 +13,7 @@ class Face:
         self.surgical_mask_bboxes: list = []
         self.obeyed_rules: dict = None
 
-    def set_face_bbox(self, bbox:tuple[int,int,int,int]) -> None:
+    def set_face_bbox(self, bbox:Tuple[int,int,int,int]) -> None:
         self.face_bbox = bbox
 
     def get_face_bbox(self) -> list:
@@ -21,16 +22,16 @@ class Face:
     def get_face_bbox_area(self) -> int:
         return abs((self.face_bbox[2] - self.face_bbox[0]) * (self.face_bbox[3] - self.face_bbox[1]))
     
-    def append_net_bboxes(self, bbox:tuple[int,int,int,int]) -> None:
+    def append_net_bboxes(self, bbox:Tuple[int,int,int,int]) -> None:
         self.net_bboxes.append(bbox)
     
-    def append_surical_mask_bboxes(self, bbox:tuple[int,int,int,int]) -> None:
+    def append_surical_mask_bboxes(self, bbox:Tuple[int,int,int,int]) -> None:
         self.surgical_mask_bboxes.append(bbox)
 
-    def append_goggles_bboxes(self, bbox:tuple[int,int,int,int]) -> None:
+    def append_goggles_bboxes(self, bbox:Tuple[int,int,int,int]) -> None:
         self.goggles_bboxes.append(bbox)
 
-    def update_obeys_to_which_rules(self) -> dict[str, bool]:
+    def update_obeys_to_which_rules(self) -> Dict[str, bool]:
         self.obeyed_rules = {
             "is_hairnet_worn": False,
             "is_safety_google_worn": False,
@@ -63,7 +64,7 @@ class Face:
             
         return True
 
-    def get_obeyed_rules_dict(self) -> dict[str, bool]:
+    def get_obeyed_rules_dict(self) -> Dict[str, bool]:
         return self.obeyed_rules 
         
     def test_draw_bboxes(self, frame:np.ndarray):
@@ -90,7 +91,7 @@ class Face:
 
         #self.__add_rule_texts_on(frame=frame, positive_text_color=positive_text_color, negative_text_color=negative_text_color, text_size=text_size, text_thickness =text_thickness)
 
-    def __draw_face_detection_rectangle_on(self, is_draw_scan_line:bool=False, frame:np.ndarray=None, stroke_color:tuple[int,int,int]=(0,0,0), stripe_stroke:int=1, bold_stroke:int=5) -> np.ndarray:
+    def __draw_face_detection_rectangle_on(self, is_draw_scan_line:bool=False, frame:np.ndarray=None, stroke_color:Tuple[int,int,int]=(0,0,0), stripe_stroke:int=1, bold_stroke:int=5) -> np.ndarray:
     
         #draw bounding edges
         cv2.rectangle(frame, (self.face_bbox[0],self.face_bbox[1]),  (self.face_bbox[2],self.face_bbox[3]), stroke_color, stripe_stroke)
@@ -138,7 +139,7 @@ class Face:
             
         return frame
     
-    def __add_rule_texts_on(self, frame:np.ndarray, positive_text_color:tuple[int,int,int]=(0,0,0), negative_text_color:tuple[int,int,int]=(0,0,0), text_thickness:int=1, text_size:float=0.5) -> np.ndarray:
+    def __add_rule_texts_on(self, frame:np.ndarray, positive_text_color:Tuple[int,int,int]=(0,0,0), negative_text_color:Tuple[int,int,int]=(0,0,0), text_thickness:int=1, text_size:float=0.5) -> np.ndarray:
         bbox_coordinates = [(self.face_bbox[0],self.face_bbox[1] ),(self.face_bbox[2],self.face_bbox[3] )]
 
         key_mapping ={

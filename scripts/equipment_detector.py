@@ -1,5 +1,6 @@
 from ultralytics import YOLO
 import copy 
+from typing import List, Dict, Tuple #for python3.8 compatibility
 
 class EquipmentDetector():
 
@@ -45,7 +46,7 @@ class EquipmentDetector():
             
             self.recent_prediction_results.append(prediction_dict_template)
         
-    def return_formatted_predictions_list(self) -> list[dict]:
+    def return_formatted_predictions_list(self) -> List[Dict]:
         formatted_predictions_list = [] # each element of this list is of the form ["tpye", (x1, y1, x2, y2)]
         for prediction in self.recent_prediction_results:
             formatted_predictions_list.append(copy.deepcopy([prediction["class_name"], tuple(map(int, prediction["bbox_xyxy_px"]))]))
