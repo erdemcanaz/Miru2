@@ -133,8 +133,8 @@ class Face:
             self.__draw_face_detection_rectangle_on(is_draw_scan_line=True, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)   
             self.__add_equipment_icons_main_face(frame=frame)
 
-            max_width = self.face_bbox[2] - self.face_bbox[0]
-            max_height = self.face_bbox[3] - self.face_bbox[1]
+            max_width = (self.face_bbox[2] - self.face_bbox[0])//5
+            max_height = (self.face_bbox[3] - self.face_bbox[1])//5
             self.__add_approval_disapproval_icons(frame=frame, is_approved=self.is_allowed_to_pass(), max_width=max_width, max_height=max_height)
         
         else:
@@ -241,8 +241,8 @@ class Face:
 
     def __add_approval_disapproval_icons(self, frame:np.ndarray, is_approved:bool, max_width:int, max_height:int) -> np.ndarray:
         icon_name = "approval" if is_approved else "disapproval"
-        x_position = self.face_bbox[0] - 20
-        y_position = self.face_bbox[1] - 20
+        x_position = self.face_bbox[0] - max_width//2
+        y_position = self.face_bbox[1] - max_height//2
         picasso.draw_image_on_frame(frame=frame, image_name=icon_name, x=x_position, y=y_position, width=max_width, height=max_height, maintain_aspect_ratio=True)
 
 
