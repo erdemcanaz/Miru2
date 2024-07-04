@@ -89,7 +89,8 @@ class PoseDetector():
 
         return self.recent_prediction_results
     
-    def return_formatted_predictions_list(self, frame:np.ndarray = None, predictions:list[dict] = None, keypoint_confidence_threshold:float = 0.75) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:      
+    def return_formatted_predictions_list(self, frame:np.ndarray = None, predictions:list[dict] = None, keypoint_confidence_threshold:float = 0.75) -> List:      
+        #returns List[Tuple[Tuple[int, int], Tuple[int, int]]]
         if predictions is None:
             raise ValueError("No detections provided")
         
