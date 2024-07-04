@@ -244,7 +244,7 @@ class FaceManager:
 
         return intersection_area / bbox2_area
     
-    def update_current_faces(self, face_and_equipment_detections:list[tuple[str,tuple[int,int,int,int]]], min_overlap: float = 0.3) -> None:
+    def update_current_faces(self, face_and_equipment_detections:List[Tuple[str,Tuple[int,int,int,int]]], min_overlap: float = 0.3) -> None:
         self.current_face_objects = []       
         self.number_of_active_faces = None
 
