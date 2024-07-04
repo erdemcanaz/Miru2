@@ -28,7 +28,7 @@ face_tracker_2_object = face_tracker_2.FaceManager()
 slides_show_object = slides_show.SlideShow(slides_folder="scripts/slides", slide_duration_s=5)
 
 # Open webcam
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+cap = cv2.VideoCapture(0)# cap = cv2.VideoCapture(0, cv2.CAP_DSHOW for windows to fast turn on
 cap.set(3, 640)
 cap.set(4, 360)
 
@@ -39,6 +39,8 @@ cv2.setWindowProperty('Miru', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 while True:
     # Read frame from webcam
     ret, frame = cap.read()
+    if not ret:
+        continue
 
     #Arduino communication test
     arduino_communicator_object.ensure_connection()
