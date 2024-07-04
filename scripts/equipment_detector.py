@@ -49,7 +49,7 @@ class EquipmentDetector():
     def return_formatted_predictions_list(self) -> List[Dict]:
         formatted_predictions_list = [] # each element of this list is of the form ["tpye", (x1, y1, x2, y2)]
         for prediction in self.recent_prediction_results:
-            formatted_predictions_list.append(copy.deepcopy([prediction["class_name"], tuple(map(int, prediction["bbox_xyxy_px"]))]))
+            formatted_predictions_list.append(copy.deepcopy([prediction["class_name"], prediction["bbox_confidence"], tuple(map(int, prediction["bbox_xyxy_px"]))]))
 
         return formatted_predictions_list
 

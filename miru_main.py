@@ -11,11 +11,10 @@ sys.path.append(scripts_directory)
 # Now you can import your scripts using absolute paths
 import pose_detector
 import equipment_detector
-#import face_tracker
 import face_tracker_2
 import arduino_communicator
 import slides_show
-
+import face_tracker_memory
 
 import cv2
 import pprint
@@ -23,9 +22,10 @@ import pprint
 arduino_communicator_object = arduino_communicator.ArduinoCommunicator(baud_rate=9600, serial_timeout=2, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 10, verbose = False, write_delay_s=0.01)
 pose_detector_object = pose_detector.PoseDetector(model_name="yolov8n")
 equipment_detector_object = equipment_detector.EquipmentDetector(model_name="net_google_mask_28_06_2024")
-#face_tracker_object = face_tracker.HumanFaceTracker()
 face_tracker_2_object = face_tracker_2.FaceManager()
 slides_show_object = slides_show.SlideShow(slides_folder="scripts/slides", slide_duration_s=5)
+
+face_manager_with_memory_object = face_tracker_memory.FaceTrackerManager()
 
 # Open webcam
 cap = cv2.VideoCapture(0)# cap = cv2.VideoCapture(0, cv2.CAP_DSHOW for windows to fast turn on
@@ -40,37 +40,34 @@ while True:
     # Read frame from webcam
     ret, frame = cap.read()
     if not ret:
+        print("Error reading frame")
         continue
 
     #Arduino communication test
     arduino_communicator_object.ensure_connection()
     arduino_communicator_object.draw_arduino_connection_status_icon(frame)
+    
+    pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(frame,bbox_confidence=0.3)           
+    face_bbox_coords = pose_detector_object.return_face_bboxes_list(frame = frame, predictions= pose_pred_dicts, keypoint_confidence_threshold = 0.80)
+    face_manager_with_memory_object.update_face_bboxes(face_bbox_coords)
 
+    # [ ["class_name", "confidence", "bbox_coords"], ...]
     equipment_detector_object.predict_frame(frame, bbox_confidence=0.6)
     equipment_formatted_predictions = equipment_detector_object.return_formatted_predictions_list()
+    face_manager_with_memory_object.update_face_equipments(equipment_formatted_predictions)
 
-    if len(equipment_formatted_predictions) > 0:
-        print()
-        pprint.pprint(equipment_formatted_predictions)
-
-    pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(frame,bbox_confidence=0.5)        
-    face_bbox_coords = pose_detector_object.return_formatted_predictions_list(frame = frame, predictions= pose_pred_dicts, keypoint_confidence_threshold = 0.85)
-    
-    face_and_equipment_detections = face_bbox_coords + equipment_formatted_predictions    
-    face_tracker_2_object.update_current_faces(face_and_equipment_detections)
-    face_tracker_2_object.draw_faces_on_frame(frame=frame) 
+    # face_tracker_2_object.update_face_bboxes(face_bbox_coords)
 
     # if face_tracker_object.should_turn_on_turnstiles():
     #     arduino_communicator_object.send_activate_turnstile_signal()
     # else:
     #     arduino_communicator_object.send_ping_to_arduino()
 
-
-    # slide related operations
+    # slide related operations    
     if slides_show_object.should_change_slide():
         slides_show_object.update_current_slide()
 
-    if face_tracker_2_object.get_number_of_active_faces() == 0:
+    if face_manager_with_memory_object.get_number_of_active_faces() == 0:
         slides_show_object.increase_opacity()
     else:
         slides_show_object.decrease_opacity()

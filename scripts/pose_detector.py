@@ -140,6 +140,57 @@ class PoseDetector():
            
         return extracted_face_coordinates
 
+    def return_face_bboxes_list(self, frame:np.ndarray = None, predictions:List[Dict] = None, keypoint_confidence_threshold:float = 0.75) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:      
+        if predictions is None:
+            raise ValueError("No detections provided")
+        
+        extracted_face_coordinates = []
+        facial_keypoints = ["left_eye", "right_eye", "nose", "left_ear", "right_ear"]
+
+        for detection in predictions:
+            if detection["class_name"] != "person":
+                continue
+
+            detected_keypoints = {
+                "left_eye": False,
+                "right_eye": False,
+                "nose": False,
+                "left_ear": False,
+                "right_ear": False
+            }
+
+            for keypoint_name in facial_keypoints:
+                keypoint = detection["keypoints"][keypoint_name]
+                if keypoint[2] > keypoint_confidence_threshold: #means detected and confidence is above threshold
+                    detected_keypoints[keypoint_name] = True                    
+                else:
+                    continue
+
+            #determine the face bounding boxe using the location of the right and left eyes
+            if detected_keypoints["left_eye"] and detected_keypoints["right_eye"]:                   
+                frame_height, frame_width, _ = frame.shape
+
+                left_eye_center = (detection["keypoints"]["left_eye"][0],detection["keypoints"]["left_eye"][1])
+                right_eye_center = (detection["keypoints"]["right_eye"][0],detection["keypoints"]["right_eye"][1])             
+                distance_between_eyes = abs(left_eye_center[0] - right_eye_center[0])
+
+                face_center_x = (left_eye_center[0] + right_eye_center[0]) // 2
+                face_center_y = (left_eye_center[1] + right_eye_center[1]) // 2
+
+                # Define box size based on the distance between eyes
+                box_width = int(4.0 * distance_between_eyes) # Adjust the multiplier as needed
+                box_height = int(4.0 * distance_between_eyes) # Adjust the multiplier as needed
+
+                # Calculate the top-left and bottom-right coordinates
+                face_bbox_x1 = int(max(0, face_center_x - box_width // 2))
+                face_bbox_y1 = int(max(0, face_center_y - box_height // 2))
+                face_bbox_x2 = int(min(frame_width - 1, face_center_x + box_width // 2))
+                face_bbox_y2 = int(min(frame_height - 1, face_center_y + box_height // 2))
+
+                extracted_face_coordinates.append(copy.deepcopy((face_bbox_x1,face_bbox_y1, face_bbox_x2, face_bbox_y2)))            
+           
+        return extracted_face_coordinates
+
             
          
                
