@@ -303,5 +303,5 @@ class FaceManager:
             else:                
                 face.draw_face(frame=frame, is_main_face = False)
     
-        picasso.draw_image_on_frame(frame=frame, image_name="information", x=50, y=50, width=300, height=450, maintain_aspect_ratio=True)
+        picasso.draw_image_on_frame(frame=frame, image_name="information", x=50, y=50, width=100, height=100, maintain_aspect_ratio=True)
         

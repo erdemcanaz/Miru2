@@ -1,9 +1,21 @@
-from scripts import pose_detector
-from scripts import equipment_detector
-from scripts import face_tracker
-from scripts import face_tracker_2
-from scripts import arduino_communicator
-from scripts import slides_show
+import sys
+import os
+
+# Determine the absolute path to the directory containing your scripts folder
+project_directory = os.path.dirname(os.path.abspath(__file__))
+scripts_directory = os.path.join(project_directory, 'scripts')
+
+# Add the scripts directory to the sys.path
+sys.path.append(scripts_directory)
+
+# Now you can import your scripts using absolute paths
+import pose_detector
+import equipment_detector
+import face_tracker
+import face_tracker_2
+import arduino_communicator
+import slides_show
+
 
 import cv2
 import pprint
@@ -17,8 +29,8 @@ slides_show_object = slides_show.SlideShow(slides_folder="scripts/slides", slide
 
 # Open webcam
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+cap.set(3, 640)
+cap.set(4, 360)
 
 # Create a window named 'Object Detection' and set the window to fullscreen if desired
 cv2.namedWindow('Miru', cv2.WINDOW_NORMAL)
