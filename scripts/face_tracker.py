@@ -5,7 +5,7 @@ from typing import List, Dict, Tuple #for python3.8 compatibility
 
 class HumanFaceFrame:
 
-    def __init__(self, bbox_coordinates:List[Tuple[int, int], Tuple[int, int]], extracted_face_frame:np.ndarray=None):
+    def __init__(self, bbox_coordinates: List[Tuple[Tuple[int, int], Tuple[int, int]]], extracted_face_frame: np.ndarray = None):
         self.bbox_coordinates = bbox_coordinates
         self.bbox_area = abs((bbox_coordinates[1][0] - bbox_coordinates[0][0]) * (bbox_coordinates[1][1] - bbox_coordinates[0][1]))
         self.extracted_face_frame = extracted_face_frame

@@ -11,7 +11,7 @@ sys.path.append(scripts_directory)
 # Now you can import your scripts using absolute paths
 import pose_detector
 import equipment_detector
-import face_tracker
+#import face_tracker
 import face_tracker_2
 import arduino_communicator
 import slides_show
@@ -23,7 +23,7 @@ import pprint
 arduino_communicator_object = arduino_communicator.ArduinoCommunicator(baud_rate=9600, serial_timeout=2, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 10, verbose = False, write_delay_s=0.01)
 pose_detector_object = pose_detector.PoseDetector(model_name="yolov8n")
 equipment_detector_object = equipment_detector.EquipmentDetector(model_name="net_google_mask_28_06_2024")
-face_tracker_object = face_tracker.HumanFaceTracker()
+#face_tracker_object = face_tracker.HumanFaceTracker()
 face_tracker_2_object = face_tracker_2.FaceManager()
 slides_show_object = slides_show.SlideShow(slides_folder="scripts/slides", slide_duration_s=5)
 
