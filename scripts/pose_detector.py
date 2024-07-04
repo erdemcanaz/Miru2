@@ -1,5 +1,5 @@
 from ultralytics import YOLO
-from typing import List, Dict
+from typing import List, Dict #for python3.8 compatibility
 import cv2,math,time,os
 import time,pprint,copy
 import numpy as np
@@ -49,7 +49,7 @@ class PoseDetector():
         }
         return empty_prediction_dict
     
-    def predict_frame_and_return_detections(self, frame:np.ndarray = None, bbox_confidence:float=0.75) -> list[dict]:
+    def predict_frame_and_return_detections(self, frame:np.ndarray = None, bbox_confidence:float=0.75) -> List[Dict]:
         self.recent_prediction_results = []
         
         results = self.yolo_object(frame, task = "pose", verbose= False)[0]
