@@ -1,10 +1,11 @@
 import numpy as np
 import copy, time
 import cv2
+from typing import List, Dict, Tuple #for python3.8 compatibility
 
 class HumanFaceFrame:
 
-    def __init__(self, bbox_coordinates:list[tuple[int, int], tuple[int, int]], extracted_face_frame:np.ndarray=None):
+    def __init__(self, bbox_coordinates:List[Tuple[int, int], Tuple[int, int]], extracted_face_frame:np.ndarray=None):
         self.bbox_coordinates = bbox_coordinates
         self.bbox_area = abs((bbox_coordinates[1][0] - bbox_coordinates[0][0]) * (bbox_coordinates[1][1] - bbox_coordinates[0][1]))
         self.extracted_face_frame = extracted_face_frame
@@ -13,10 +14,10 @@ class HumanFaceFrame:
     def get_bbox_area(self) -> int:
         return self.bbox_area
     
-    def get_bbox_coordinates(self) -> list[tuple[int, int], tuple[int, int]]:
+    def get_bbox_coordinates(self) -> List[Tuple[int, int], Tuple[int, int]]:
         return self.bbox_coordinates
     
-    def check_obeys_to_which_rules(self) -> dict[str, bool]:
+    def check_obeys_to_which_rules(self) -> Dict[str, bool]:
 
         #TODO: A yolov8 model should be trained to detect the following objects: hairnet, safety google, face mask and beard
 
@@ -40,7 +41,7 @@ class HumanFaceFrame:
          
         return True
     
-    def __draw_face_detection_rectangle_on(self, is_draw_scan_line:bool=False, frame:np.ndarray=None, stroke_color:tuple[int,int,int]=(0,0,0), stripe_stroke:int=1, bold_stroke:int=5) -> np.ndarray:
+    def __draw_face_detection_rectangle_on(self, is_draw_scan_line:bool=False, frame:np.ndarray=None, stroke_color:Tuple[int,int,int]=(0,0,0), stripe_stroke:int=1, bold_stroke:int=5) -> np.ndarray:
     
         #draw bounding edges
         cv2.rectangle(frame, self.bbox_coordinates[0],  self.bbox_coordinates[1], stroke_color, stripe_stroke)
@@ -87,7 +88,7 @@ class HumanFaceFrame:
             
         return frame
     
-    def __add_rule_texts_on(self, frame:np.ndarray, positive_text_color:tuple[int,int,int]=(0,0,0), negative_text_color:tuple[int,int,int]=(0,0,0), text_thickness:int=1, text_size:float=0.5) -> np.ndarray:
+    def __add_rule_texts_on(self, frame:np.ndarray, positive_text_color:Tuple[int,int,int]=(0,0,0), negative_text_color:Tuple[int,int,int]=(0,0,0), text_thickness:int=1, text_size:float=0.5) -> np.ndarray:
         key_mapping ={
             "is_hairnet_worn": "Hairnet",
             "is_safety_google_worn": "Safety Google",
@@ -115,7 +116,7 @@ class HumanFaceFrame:
 
             cv2.putText(frame, rule_text, (x_position, y_position), cv2.FONT_HERSHEY_SIMPLEX, text_size, text_color, text_thickness)
    
-    def draw_face(self, positive_text_color:tuple[int,int,int]=(0,255,0),negative_text_color:tuple[int,int,int]=(0,0,255),text_size:float = 0.5, text_thickness:int = 2, frame:np.ndarray=None, is_draw_scan_line:bool = True,  stroke_color: tuple[int,int,int] = (0,255,0), stripe_stroke:int=1, bold_stroke:int=5):
+    def draw_face(self, positive_text_color:Tuple[int,int,int]=(0,255,0),negative_text_color:Tuple[int,int,int]=(0,0,255),text_size:float = 0.5, text_thickness:int = 2, frame:np.ndarray=None, is_draw_scan_line:bool = True,  stroke_color: Tuple[int,int,int] = (0,255,0), stripe_stroke:int=1, bold_stroke:int=5):
         self.__draw_face_detection_rectangle_on(is_draw_scan_line=is_draw_scan_line, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)   
         self.__add_rule_texts_on(frame=frame, positive_text_color=positive_text_color, negative_text_color=negative_text_color, text_size=text_size, text_thickness =text_thickness)
 
@@ -124,7 +125,7 @@ class HumanFaceTracker:
     def __init__(self):
         self.tracked_faces = []
 
-    def update_detected_faces(self, frame:np.ndarray = None, detected_face_bbox_coords:list[list[tuple[int,int], tuple[int,int]]] = None, equipment_detections:list[dict]=[]) -> None:
+    def update_detected_faces(self, frame:np.ndarray = None, detected_face_bbox_coords:List[List[Tuple[int,int], Tuple[int,int]]] = None, equipment_detections:List[dict]=[]) -> None:
         self.tracked_faces = []
         for bbox_coords in detected_face_bbox_coords:
             face_frame = copy.deepcopy(frame[bbox_coords[0][1]:bbox_coords[1][1], bbox_coords[0][0]:bbox_coords[1][0]])
