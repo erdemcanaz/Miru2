@@ -30,8 +30,8 @@ face_manager_with_memory_object = face_tracker_memory.FaceTrackerManager()
 
 # Open webcam
 cap = cv2.VideoCapture(0)# cap = cv2.VideoCapture(0, cv2.CAP_DSHOW for windows to fast turn on
-cap.set(3, 640)
-cap.set(4, 360)
+cap.set(3, 1920)
+cap.set(4, 1080)
 
 # Create a window named 'Object Detection' and set the window to fullscreen if desired
 cv2.namedWindow('Miru', cv2.WINDOW_NORMAL)
