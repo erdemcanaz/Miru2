@@ -6,7 +6,7 @@ import cv2
 import time
 
 class Face:
-    def __init__(self, age_limit:int = 3, sample_size:int = 5, face_bbox:List[Tuple[int,int,int,int]] = None):
+    def __init__(self, age_limit:int = 3, sample_size:int = 5, face_bbox:List[Tuple[int,int,int,int,str]] = None):
         self.AGE_LIMIT = age_limit
         self.SAMPLE_SIZE = sample_size
         self.EQUIPMENT_CONFIDENCE_THRESHOLDS = {
@@ -37,17 +37,17 @@ class Face:
             "white_surgical_mask":[0]*self.SAMPLE_SIZE
         }                
         
-    def get_face_bbox(self) -> List[Tuple[int,int,int,int]]:
+    def get_face_bbox(self) -> List[Tuple[int,int,int,int,str]]:
         return self.face_bbox
     
     def get_bbox_area(self) -> int:
         return (self.face_bbox[2] - self.face_bbox[0]) * (self.face_bbox[3] - self.face_bbox[1])
     
-    def update_face_bbox(self, face_bbox:List[Tuple[int,int,int,int]]):
+    def update_face_bbox(self, face_bbox:List[Tuple[int,int,int,int,str]]):
         self.age = 0
         self.face_bbox = face_bbox
   
-    def transform_class_name(self, equipment_class:str = None, equipment_bbox:List[Tuple[int,int,int,int]] = None) -> str:
+    def transform_class_name(self, equipment_class:str = None, equipment_bbox:List[Tuple[int,int,int,int,str]] = None) -> str:
         # The object detection model can classify various types of equipment under the same class.
         # For example, both white hairnets and white beard nets are classified as "white_hairnet".
         # This function transforms the general class name into a list of more specific class names.
@@ -127,7 +127,7 @@ class Face:
             
         return True
 
-    
+   
     def draw_face(self, frame:np.ndarray=None, is_main_face:bool = None, stripe_stroke:int=1, bold_stroke:int=5, coordinate_transform_coefficients=[1,1]):
         self.face_bbox_transformed = [int(self.face_bbox[0]*coordinate_transform_coefficients[0]), int(self.face_bbox[1]*coordinate_transform_coefficients[1]), int(self.face_bbox[2]*coordinate_transform_coefficients[0]), int(self.face_bbox[3]*coordinate_transform_coefficients[1])]
         if is_main_face:
@@ -247,7 +247,6 @@ class Face:
         y_position = self.face_bbox_transformed[1] - max_height//2
         picasso.draw_image_on_frame(frame=frame, image_name=icon_name, x=x_position, y=y_position, width=max_width, height=max_height, maintain_aspect_ratio=True)
 
-
 class FaceTrackerManager:
     def __init__(self, face_update_overlap_threshold:float = 0.5, equipment_update_overlap_threshold:float = 0.5):
         self.FACE_UPDATE_OVERLAP_THRESHOLD = face_update_overlap_threshold #minimum overlap between face bboxes to be considered the same face
@@ -257,7 +256,7 @@ class FaceTrackerManager:
     def get_number_of_active_faces(self) -> int:
         return len(self.face_objects)
     
-    def __calculate_overlap(self, bbox1:List[Tuple[int,int,int,int]], bbox2:List[Tuple[int,int,int,int]]) -> float: 
+    def __calculate_overlap(self, bbox1:List[Tuple[int,int,int,int,str]], bbox2:List[Tuple[int,int,int,int,str]]) -> float: 
         # Returns how much percentage of bbox2 inside bbox1 
         x1 = max(bbox1[0], bbox2[0])
         y1 = max(bbox1[1], bbox2[1])
@@ -299,7 +298,7 @@ class FaceTrackerManager:
         for face in faces_to_delete:
             self.face_objects.remove(face)
     
-    def update_face_equipments_detection_confidences_and_obeyed_rules(self, equipment_predictions: List[Tuple[str, float, Tuple[int, int, int, int]]]):
+    def update_face_equipments_detection_confidences_and_obeyed_rules(self, equipment_predictions: List[Tuple[str, float, Tuple[int, int, int, int,str]]]):
             for face in self.face_objects:                
                 detected_equipments = {
                     "hair_net":0,
@@ -336,7 +335,20 @@ class FaceTrackerManager:
                 face.draw_face(frame=frame, is_main_face = False, coordinate_transform_coefficients=coordinate_transform_coefficients)
     
         #picasso.draw_image_on_frame(frame=frame, image_name="information", x=50, y=50, width=100, height=100, maintain_aspect_ratio=True)
-        
+    
+    def get_main_face_detection_id(self) -> str:
+        main_face = None
+        max_area = 0
+        for face in self.face_objects:
+            face_area = face.get_bbox_area()
+            if face_area > max_area:
+                max_area = face_area
+                main_face = face
+
+        if main_face is None:
+            return ""
+        return main_face.get_face_bbox()[4]
+    
     def should_turn_on_turnstiles(self) -> bool:
         should_turn_on = False
         max_face_area = 0
