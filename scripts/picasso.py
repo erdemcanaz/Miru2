@@ -26,6 +26,13 @@ IMAGE_PATHS = {
     "green_surgical_mask": "src/images/icons/green_surgicalmask.png",
     "red_surgical_mask": "src/images/icons/red_surgicalmask.png",
     "blue_surgical_mask": "src/images/icons/blue_surgicalmask.png",
+
+    "wrist_mouse_icon": "src/images/icons/wrist_mouse_icon.png",
+
+    "nasil_kullanirim_clicked": "src/images/icons/nasil_kullanirim_clicked.png",
+    "nasil_kullanirim_unclicked": "src/images/icons/nasil_kullanirim_unclicked.png",
+    "beni_gecir_clicked": "src/images/icons/beni_gecir_clicked.png",
+    "beni_gecir_unclicked": "src/images/icons/beni_gecir_unclicked.png",
 }
 
 

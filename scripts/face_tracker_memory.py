@@ -85,8 +85,6 @@ class Face:
         blue_surgical_mask_mean_confidence = sum(self.equipment_detection_confidence_samples["blue_surgical_mask"]) / len(self.equipment_detection_confidence_samples["blue_surgical_mask"])
         white_surgical_mask_mean_confidence = sum(self.equipment_detection_confidence_samples["white_surgical_mask"]) / len(self.equipment_detection_confidence_samples["white_surgical_mask"])
 
-        print("Safety Goggles Confidence: ", safety_goggles_mean_confidence)
-
         #hairnet
         if self.obeyed_rules["is_hairnet_worn"] and hairnet_mean_confidence < self.EQUIPMENT_CONFIDENCE_THRESHOLDS["hair_net"][0]:
                 self.obeyed_rules["is_hairnet_worn"] = False
