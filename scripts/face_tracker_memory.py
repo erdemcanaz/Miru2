@@ -6,15 +6,15 @@ import cv2
 import time
 
 class Face:
-    def __init__(self, age_limit:int = 5, sample_size:int = 15, face_bbox:List[Tuple[int,int,int,int]] = None):
+    def __init__(self, age_limit:int = 5, sample_size:int = 5, face_bbox:List[Tuple[int,int,int,int]] = None):
         self.AGE_LIMIT = age_limit
         self.SAMPLE_SIZE = sample_size
         self.EQUIPMENT_CONFIDENCE_THRESHOLDS = {
-            "hair_net":[0.35,0.75],
-            "beard_net":[0.35,0.75],
-            "safety_goggles":[0.35,0.75],
-            "blue_surgical_mask":[0.35,0.75],
-            "white_surgical_mask":[0.35,0.75],
+            "hair_net":[0.3,0.70],
+            "beard_net":[0.3,0.70],
+            "safety_goggles":[0.3,0.70],
+            "blue_surgical_mask":[0.3,0.70],
+            "white_surgical_mask":[0.3,0.70],
         }
 
         self.age:int = 0 #number of iterations since the face was last detected
@@ -83,6 +83,8 @@ class Face:
         safety_goggles_mean_confidence = sum(self.equipment_detection_confidence_samples["safety_goggles"]) / len(self.equipment_detection_confidence_samples["safety_goggles"])
         blue_surgical_mask_mean_confidence = sum(self.equipment_detection_confidence_samples["blue_surgical_mask"]) / len(self.equipment_detection_confidence_samples["blue_surgical_mask"])
         white_surgical_mask_mean_confidence = sum(self.equipment_detection_confidence_samples["white_surgical_mask"]) / len(self.equipment_detection_confidence_samples["white_surgical_mask"])
+
+        print("Safety Goggles Confidence: ", safety_goggles_mean_confidence)
 
         #hairnet
         if self.obeyed_rules["is_hairnet_worn"] and hairnet_mean_confidence < self.EQUIPMENT_CONFIDENCE_THRESHOLDS["hair_net"][0]:
