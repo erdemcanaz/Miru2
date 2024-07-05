@@ -49,12 +49,16 @@ while True:
         continue
     
     frame = cv2.flip(frame, 1) # mirror the frame 
-    
+
     coordinate_transform_coefficients = (frame.shape[1] / PARMA_IMAGE_PROCESS_SIZE[0], frame.shape[0] / PARMA_IMAGE_PROCESS_SIZE[1]) # to transform the coordinates of the face bounding boxes to the original frame size from the resized frame size
     resized_frame = cv2.resize(copy.deepcopy(frame), (PARMA_IMAGE_PROCESS_SIZE[0], PARMA_IMAGE_PROCESS_SIZE[1]))
 
-    #print(f"frame shape: {frame.shape}, resized frame shape: {resized_frame.shape}, coordinate_transform_coefficients: {coordinate_transform_coefficients}")
+    #Arduino communication test
+    arduino_communicator_object.ensure_connection()
+    arduino_communicator_object.draw_arduino_connection_status_icon(frame)
+    
 
+    # Predict poses and equipments
     pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(resized_frame,bbox_confidence=0.35)   
     face_bbox_coords = pose_detector_object.return_face_bboxes_list(frame = resized_frame, predictions= pose_pred_dicts, keypoint_confidence_threshold = 0.80)
     face_manager_with_memory_object.update_face_bboxes(face_bbox_coords)    
@@ -103,10 +107,6 @@ while True:
     face_manager_with_memory_object.update_face_equipments_detection_confidences_and_obeyed_rules(equipment_formatted_predictions)
 
     face_manager_with_memory_object.draw_faces_on_frame(frame, coordinate_transform_coefficients=coordinate_transform_coefficients)
-
-    #Arduino communication test
-    arduino_communicator_object.ensure_connection()
-    arduino_communicator_object.draw_arduino_connection_status_icon(frame)
 
     # Send signals to arduino
     if face_manager_with_memory_object.should_turn_on_turnstiles():
