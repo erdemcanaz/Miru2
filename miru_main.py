@@ -27,7 +27,7 @@ slides_show_object = slides_show.SlideShow(slides_folder="scripts/slides", slide
 face_manager_with_memory_object = face_tracker_memory.FaceTrackerManager()
 
 # Open webcam
-PARAM_CAMERA_FETCH_SIZE = (1920, 1080)
+PARAM_CAMERA_FETCH_SIZE = (1280, 720)
 PARMA_IMAGE_PROCESS_SIZE = (640, 360)
 coordinate_transform_coefficients = (PARAM_CAMERA_FETCH_SIZE[0] / PARMA_IMAGE_PROCESS_SIZE[0], PARAM_CAMERA_FETCH_SIZE[1] / PARMA_IMAGE_PROCESS_SIZE[1]) # to transform the coordinates of the face bounding boxes to the original frame size from the resized frame size
 cap = cv2.VideoCapture(0)# cap = cv2.VideoCapture(0, cv2.CAP_DSHOW for windows to fast turn on
