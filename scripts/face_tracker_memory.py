@@ -10,11 +10,11 @@ class Face:
         self.AGE_LIMIT = age_limit
         self.SAMPLE_SIZE = sample_size
         self.EQUIPMENT_CONFIDENCE_THRESHOLDS = {
-            "hair_net":[0.3,0.70],
-            "beard_net":[0.3,0.70],
-            "safety_goggles":[0.3,0.70],
-            "blue_surgical_mask":[0.3,0.70],
-            "white_surgical_mask":[0.3,0.70],
+            "hair_net":[0.3,0.60],
+            "beard_net":[0.3,0.60],
+            "safety_goggles":[0.3,0.60],
+            "blue_surgical_mask":[0.3,0.60],
+            "white_surgical_mask":[0.3,0.60],
         }
 
         self.age:int = 0 #number of iterations since the face was last detected
