@@ -69,12 +69,14 @@ while True:
     show_wrist_cursor = False
     for wrist in wrist_detections:
         print(f"wrist: {wrist}")
-        wrist_x = int(wrist[0]*coordinate_transform_coefficients[0])
-        wrist_y = max(0,int(wrist[1]*coordinate_transform_coefficients[1]-100))
+        wrist_x_p = int(wrist[0]*coordinate_transform_coefficients[0])
+        wrist_y_p = max(0,int(wrist[1]*coordinate_transform_coefficients[1]-100))
 
-        if not(wrist_x > 900 and wrist_y < 360):           
+        if not(wrist_x_p > 900 and wrist_y_p < 360):           
             break
-    
+
+        wrist_x = wrist_x_p
+        wrist_y = wrist_y_p        
         show_wrist_cursor = True
 
         if wrist_x > 1040 and wrist_x < 1280 and wrist_y > 0 and wrist_y < 170:
