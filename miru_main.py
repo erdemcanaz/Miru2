@@ -27,9 +27,12 @@ slides_show_object = slides_show.SlideShow(slides_folder="scripts/slides", slide
 face_manager_with_memory_object = face_tracker_memory.FaceTrackerManager()
 
 # Open webcam
+PARAM_CAMERA_FETCH_SIZE = (640, 360)
+PARMA_IMAGE_PROCESS_SIZE = (640, 360)
+coordinate_transform_coefficients = (PARAM_CAMERA_FETCH_SIZE[0] / PARMA_IMAGE_PROCESS_SIZE[0], PARAM_CAMERA_FETCH_SIZE[1] / PARMA_IMAGE_PROCESS_SIZE[1]) # to transform the coordinates of the face bounding boxes to the original frame size from the resized frame size
 cap = cv2.VideoCapture(0)# cap = cv2.VideoCapture(0, cv2.CAP_DSHOW for windows to fast turn on
-cap.set(3, 640)
-cap.set(4, 480)
+cap.set(3, PARAM_CAMERA_FETCH_SIZE[0])
+cap.set(4, PARAM_CAMERA_FETCH_SIZE[1])
 
 # Create a window named 'Object Detection' and set the window to fullscreen if desired
 cv2.namedWindow('Miru', cv2.WINDOW_NORMAL)
@@ -41,16 +44,23 @@ while True:
     if not ret:
         print("Error reading frame")
         continue
-        
-    pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(frame,bbox_confidence=0.35)           
-    face_bbox_coords = pose_detector_object.return_face_bboxes_list(frame = frame, predictions= pose_pred_dicts, keypoint_confidence_threshold = 0.80)
+    
+    coordinate_transform_coefficients = (frame.shape[1] / PARMA_IMAGE_PROCESS_SIZE[0], frame.shape[0] / PARMA_IMAGE_PROCESS_SIZE[1]) # to transform the coordinates of the face bounding boxes to the original frame size from the resized frame size
+    resized_frame = cv2.resize(copy.deepcopy(frame), (PARMA_IMAGE_PROCESS_SIZE[0], PARMA_IMAGE_PROCESS_SIZE[1]))
+    
+    print(frame.shape)
+    print(resized_frame.shape)
+    print(coordinate_transform_coefficients)
+
+    pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(resized_frame,bbox_confidence=0.35)           
+    face_bbox_coords = pose_detector_object.return_face_bboxes_list(frame = resized_frame, predictions= pose_pred_dicts, keypoint_confidence_threshold = 0.80)
     face_manager_with_memory_object.update_face_bboxes(face_bbox_coords)
 
-    equipment_detector_object.predict_frame(frame, bbox_confidence=0.35)
+    equipment_detector_object.predict_frame(resized_frame, bbox_confidence=0.35)
     equipment_formatted_predictions = equipment_detector_object.return_formatted_predictions_list()
     face_manager_with_memory_object.update_face_equipments_detection_confidences_and_obeyed_rules(equipment_formatted_predictions)
 
-    face_manager_with_memory_object.draw_faces_on_frame(frame)
+    face_manager_with_memory_object.draw_faces_on_frame(frame, coordinate_transform_coefficients=coordinate_transform_coefficients)
 
     #Arduino communication test
     arduino_communicator_object.ensure_connection()

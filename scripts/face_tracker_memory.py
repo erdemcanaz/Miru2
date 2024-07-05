@@ -19,6 +19,7 @@ class Face:
 
         self.age:int = 0 #number of iterations since the face was last detected
         self.face_bbox:list = face_bbox #coordinates of the face bounding box in the format (x1,y1,x2,y2)
+        self.face_bbox_transformed:list = None #coordinates of the face bounding box in the format (x1,y1,x2,y2) in the original frame size
 
         self.obeyed_rules = {
             "is_hairnet_worn": False,
@@ -129,7 +130,8 @@ class Face:
         return True
 
     
-    def draw_face(self, frame:np.ndarray=None, is_main_face:bool = None, stripe_stroke:int=1, bold_stroke:int=5):
+    def draw_face(self, frame:np.ndarray=None, is_main_face:bool = None, stripe_stroke:int=1, bold_stroke:int=5, coordinate_transform_coefficients=[1,1]):
+        self.face_bbox_transformed = [int(self.face_bbox[0]*coordinate_transform_coefficients[0]), int(self.face_bbox[1]*coordinate_transform_coefficients[1]), int(self.face_bbox[2]*coordinate_transform_coefficients[0]), int(self.face_bbox[3]*coordinate_transform_coefficients[1])]
         if is_main_face:
             stroke_color = (108,208,142) if self.is_allowed_to_pass() else (82,82,255) #green or red
             self.__draw_face_detection_rectangle_on(is_draw_scan_line=True, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)   
@@ -147,10 +149,10 @@ class Face:
     def __draw_face_detection_rectangle_on(self, is_draw_scan_line:bool=False, frame:np.ndarray=None, stroke_color:Tuple[int,int,int]=(0,0,0), stripe_stroke:int=1, bold_stroke:int=5) -> np.ndarray:
     
         #draw bounding edges
-        cv2.rectangle(frame, (self.face_bbox[0],self.face_bbox[1]),  (self.face_bbox[2],self.face_bbox[3]), stroke_color, stripe_stroke)
+        cv2.rectangle(frame, (self.face_bbox_transformed[0],self.face_bbox_transformed[1]),  (self.face_bbox_transformed[2],self.face_bbox_transformed[3]), stroke_color, stripe_stroke)
 
         #draw bold corners
-        bbox_coordinates = [(self.face_bbox[0],self.face_bbox[1] ),(self.face_bbox[2],self.face_bbox[3] )]
+        bbox_coordinates = [(self.face_bbox_transformed[0],self.face_bbox_transformed[1] ),(self.face_bbox_transformed[2],self.face_bbox_transformed[3] )]
         width =  bbox_coordinates[1][0] -  bbox_coordinates[0][0]
         height =  bbox_coordinates[1][1] -  bbox_coordinates[0][1]
 
@@ -194,10 +196,10 @@ class Face:
 
     def __add_equipment_icons_main_face(self,frame):
                 
-        max_height = int((self.face_bbox[3] - self.face_bbox[1] )/4)+1
+        max_height = int((self.face_bbox_transformed[3] - self.face_bbox_transformed[1] )/4)+1
 
         x_shift = 25
-        top_right_corner = (self.face_bbox[2], self.face_bbox[1])
+        top_right_corner = (self.face_bbox_transformed[2], self.face_bbox_transformed[1])
         y_shift = 0
         if self.obeyed_rules["is_hairnet_worn"]:
             picasso.draw_image_on_frame(frame=frame, image_name="green_hairnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1], width=100, height=max_height, maintain_aspect_ratio=True)
@@ -220,10 +222,10 @@ class Face:
             y_shift += max_height
 
     def _add_equipment_icons_secondary_faces(self, frame:np.ndarray):
-        max_height = int((self.face_bbox[3] - self.face_bbox[1] )/4)+1
+        max_height = int((self.face_bbox_transformed[3] - self.face_bbox_transformed[1] )/4)+1
 
         x_shift = 25
-        top_right_corner = (self.face_bbox[2], self.face_bbox[1])
+        top_right_corner = (self.face_bbox_transformed[2], self.face_bbox_transformed[1])
         y_shift = 0
         if self.obeyed_rules["is_hairnet_worn"]:
             picasso.draw_image_on_frame(frame=frame, image_name="grey_hairnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1], width=100, height=max_height, maintain_aspect_ratio=True)
@@ -243,8 +245,8 @@ class Face:
 
     def __add_approval_disapproval_icons(self, frame:np.ndarray, is_approved:bool, max_width:int, max_height:int) -> np.ndarray:
         icon_name = "approval" if is_approved else "disapproval"
-        x_position = self.face_bbox[0] - max_width//2
-        y_position = self.face_bbox[1] - max_height//2
+        x_position = self.face_bbox_transformed[0] - max_width//2
+        y_position = self.face_bbox_transformed[1] - max_height//2
         picasso.draw_image_on_frame(frame=frame, image_name=icon_name, x=x_position, y=y_position, width=max_width, height=max_height, maintain_aspect_ratio=True)
 
 
@@ -319,7 +321,7 @@ class FaceTrackerManager:
                 face.append_detection_confidences(detected_equipments)
                 face.update_obeyed_rules()
 
-    def draw_faces_on_frame(self, frame:np.ndarray) -> np.ndarray:
+    def draw_faces_on_frame(self, frame:np.ndarray, coordinate_transform_coefficients=[1,1]) -> np.ndarray:
         
         main_face = None
         max_area = 0
@@ -331,13 +333,12 @@ class FaceTrackerManager:
 
         for face in self.face_objects:
             if face == main_face:
-                face.draw_face(frame=frame, is_main_face = True)
+                face.draw_face(frame=frame, is_main_face = True, coordinate_transform_coefficients=coordinate_transform_coefficients)
             else:                
-                face.draw_face(frame=frame, is_main_face = False)
+                face.draw_face(frame=frame, is_main_face = False, coordinate_transform_coefficients=coordinate_transform_coefficients)
     
         #picasso.draw_image_on_frame(frame=frame, image_name="information", x=50, y=50, width=100, height=100, maintain_aspect_ratio=True)
         
-
     def should_turn_on_turnstiles(self) -> bool:
         should_turn_on = False
         max_face_area = 0
