@@ -66,11 +66,11 @@ while True:
     arduino_communicator_object.ensure_connection()
     arduino_communicator_object.draw_arduino_connection_status_icon(frame)
 
-    # # Send signals to arduino
-    # if face_manager_with_memory_object.should_turn_on_turnstiles():
-    #     arduino_communicator_object.send_activate_turnstile_signal()
-    # else:
-    #     arduino_communicator_object.send_ping_to_arduino()
+    # Send signals to arduino
+    if face_manager_with_memory_object.should_turn_on_turnstiles():
+        arduino_communicator_object.send_activate_turnstile_signal()
+    else:
+        arduino_communicator_object.send_ping_to_arduino()
 
     # slide related operations 
     if slides_show_object.should_change_slide():
