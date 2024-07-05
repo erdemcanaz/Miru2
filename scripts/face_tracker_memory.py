@@ -6,7 +6,7 @@ import cv2
 import time
 
 class Face:
-    def __init__(self, age_limit:int = 5, sample_size:int = 5, face_bbox:List[Tuple[int,int,int,int]] = None):
+    def __init__(self, age_limit:int = 3, sample_size:int = 5, face_bbox:List[Tuple[int,int,int,int]] = None):
         self.AGE_LIMIT = age_limit
         self.SAMPLE_SIZE = sample_size
         self.EQUIPMENT_CONFIDENCE_THRESHOLDS = {
