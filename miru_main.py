@@ -129,6 +129,7 @@ while True:
     frame = slides_show_object.draw_slide_on_top_of_frame(frame=frame, slide_frame=slide_frame)
 
     # Show frame    
+    frame = cv2.resize(frame, (1920, 1080))
     cv2.imshow("Miru", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):   # Break loop if 'q' is pressed
         break
