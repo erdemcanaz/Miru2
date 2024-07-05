@@ -28,6 +28,7 @@ IMAGE_PATHS = {
     "blue_surgical_mask": "src/images/icons/blue_surgicalmask.png",
 
     "wrist_mouse_icon": "src/images/icons/wrist_mouse_icon.png",
+    "wrist_mouse_icon_transparent": "src/images/icons/wrist_mouse_icon_transparent.png",
 
     "nasil_kullanirim_clicked": "src/images/icons/nasil_kullanirim_clicked.png",
     "nasil_kullanirim_unclicked": "src/images/icons/nasil_kullanirim_unclicked.png",

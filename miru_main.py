@@ -106,8 +106,8 @@ while True:
         picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_unclicked", x=1050, y=30, width=200, height=100, maintain_aspect_ratio = True)
         picasso.draw_image_on_frame(frame=frame, image_name="beni_gecir_clicked", x=1050, y=192, width=200, height=100, maintain_aspect_ratio = True)
     #if show_wrist_cursor: picasso.draw_image_on_frame(frame=frame, image_name="wrist_mouse_icon", x=wrist_x, y=wrist_y, width=60, height=60, maintain_aspect_ratio = True)
-    if show_wrist_cursor: wrist_cursor_object.draw_wrist_cursor_on_frame(frame)
-    
+    wrist_cursor_object.draw_wrist_cursor_on_frame(frame)
+
     equipment_detector_object.predict_frame(resized_frame, bbox_confidence=0.35)
     equipment_formatted_predictions = equipment_detector_object.return_formatted_predictions_list()
     face_manager_with_memory_object.update_face_equipments_detection_confidences_and_obeyed_rules(equipment_formatted_predictions)
