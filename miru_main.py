@@ -48,6 +48,8 @@ while True:
         print("Error reading frame")
         continue
     
+    frame = cv2.flip(frame, 1) # mirror the frame 
+    
     coordinate_transform_coefficients = (frame.shape[1] / PARMA_IMAGE_PROCESS_SIZE[0], frame.shape[0] / PARMA_IMAGE_PROCESS_SIZE[1]) # to transform the coordinates of the face bounding boxes to the original frame size from the resized frame size
     resized_frame = cv2.resize(copy.deepcopy(frame), (PARMA_IMAGE_PROCESS_SIZE[0], PARMA_IMAGE_PROCESS_SIZE[1]))
 
@@ -84,8 +86,6 @@ while True:
 
         if wrist_x > 1040 and wrist_x < 1280 and wrist_y > 170 and wrist_y < 340:
             mode = "pass_me"
-
-        
 
     if mode == "normal":
         picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_unclicked", x=1050, y=30, width=200, height=100, maintain_aspect_ratio = True)
@@ -128,9 +128,8 @@ while True:
     # Draw slide on top of frame
     frame = slides_show_object.draw_slide_on_top_of_frame(frame=frame, slide_frame=slide_frame)
 
-    # Show frame
-    frame = cv2.resize(frame, (1920, 1080))
-    cv2.imshow("Miru", frame)        
+    # Show frame    
+    cv2.imshow("Miru", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):   # Break loop if 'q' is pressed
         break
 
