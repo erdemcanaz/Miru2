@@ -34,6 +34,8 @@ IMAGE_PATHS = {
     "nasil_kullanirim_unclicked": "src/images/icons/nasil_kullanirim_unclicked.png",
     "beni_gecir_clicked": "src/images/icons/beni_gecir_clicked.png",
     "beni_gecir_unclicked": "src/images/icons/beni_gecir_unclicked.png",
+
+    "miru_how_to_use_page": "src/images/popups/miru_how_to_use_page.png",
 }
 
 

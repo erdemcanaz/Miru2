@@ -66,46 +66,6 @@ while True:
     main_face_pose_detection_id = face_manager_with_memory_object.get_main_face_detection_id()
 
     wrist_cursor_object.update_wrist_cursor_position(main_face_pose_detection_id=main_face_pose_detection_id, pose_pred_dicts=pose_pred_dicts, predicted_frame=resized_frame)
-    
-    wrist_detections = [] 
-    for person in pose_pred_dicts:
-        #print(f"person: {person['detection_id']}")
-        if person["keypoints"]["left_wrist"][2] > 0.80: 
-            wrist_detections.append(person["keypoints"]["left_wrist"])
-        if person["keypoints"]["right_wrist"][2] > 0.80:
-            wrist_detections.append(person["keypoints"]["right_wrist"])
-
-    wrist_x = 0
-    wrist_y = 0
-    show_wrist_cursor = False
-    for wrist in wrist_detections:
-        #print(f"wrist: {wrist}")
-        wrist_x_p = int(wrist[0]*coordinate_transform_coefficients[0])
-        wrist_y_p = max(0,int(wrist[1]*coordinate_transform_coefficients[1]-100))
-
-        if not(wrist_x_p > 900 and wrist_y_p < 360):           
-            break
-
-        wrist_x = wrist_x_p
-        wrist_y = wrist_y_p        
-        show_wrist_cursor = True
-
-        if wrist_x > 1040 and wrist_x < 1280 and wrist_y > 0 and wrist_y < 170:
-            mode = "how_to_use"
-
-        if wrist_x > 1040 and wrist_x < 1280 and wrist_y > 170 and wrist_y < 340:
-            mode = "pass_me"
-
-    if mode == "normal":
-        picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_unclicked", x=1050, y=30, width=200, height=100, maintain_aspect_ratio = True)
-        picasso.draw_image_on_frame(frame=frame, image_name="beni_gecir_unclicked", x=1050, y=192, width=200, height=100, maintain_aspect_ratio = True)
-    elif mode == "how_to_use":
-        picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_clicked", x=1050, y=30, width=200, height=100, maintain_aspect_ratio = True)
-        picasso.draw_image_on_frame(frame=frame, image_name="beni_gecir_unclicked", x=1050, y=192, width=200, height=100, maintain_aspect_ratio = True)
-    elif mode == "pass_me":
-        picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_unclicked", x=1050, y=30, width=200, height=100, maintain_aspect_ratio = True)
-        picasso.draw_image_on_frame(frame=frame, image_name="beni_gecir_clicked", x=1050, y=192, width=200, height=100, maintain_aspect_ratio = True)
-    #if show_wrist_cursor: picasso.draw_image_on_frame(frame=frame, image_name="wrist_mouse_icon", x=wrist_x, y=wrist_y, width=60, height=60, maintain_aspect_ratio = True)
     wrist_cursor_object.draw_wrist_cursor_on_frame(frame)
 
     equipment_detector_object.predict_frame(resized_frame, bbox_confidence=0.35)
