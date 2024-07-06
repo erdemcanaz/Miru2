@@ -67,7 +67,9 @@ while True:
 
     wrist_cursor_object.update_wrist_cursor_position(main_face_pose_detection_id=main_face_pose_detection_id, pose_pred_dicts=pose_pred_dicts, predicted_frame=resized_frame)
     wrist_cursor_object.draw_wrist_cursor_on_frame(frame)
-
+    wrist_cursor_object.update_wrist_cursor_mode()
+    wrist_cursor_object.draw_buttons_on_frame(frame)
+ 
     equipment_detector_object.predict_frame(resized_frame, bbox_confidence=0.35)
     equipment_formatted_predictions = equipment_detector_object.return_formatted_predictions_list()
     face_manager_with_memory_object.update_face_equipments_detection_confidences_and_obeyed_rules(equipment_formatted_predictions)
@@ -84,7 +86,7 @@ while True:
     if slides_show_object.should_change_slide():
         slides_show_object.update_current_slide()
 
-    if face_manager_with_memory_object.get_number_of_active_faces() == 0:
+    if False and face_manager_with_memory_object.get_number_of_active_faces() == 0:
         slides_show_object.increase_opacity()
     else:
         slides_show_object.decrease_opacity()
@@ -93,6 +95,11 @@ while True:
 
     # Draw slide on top of frame
     frame = slides_show_object.draw_slide_on_top_of_frame(frame=frame, slide_frame=slide_frame)
+
+    # Cursor related UI modifications
+       
+    if wrist_cursor_object.get_mode() == "how_to_use_activated":
+        picasso.draw_image_on_frame(frame=frame, image_name="miru_how_to_use_page", x=0, y=0, width=frame.shape[1], height=frame.shape[0], maintain_aspect_ratio = False)
 
     # Show frame    
     frame = cv2.resize(frame, (PARAM_DISPLAY_SIZE[0], PARAM_DISPLAY_SIZE[1])) # resize the frame to the display size (1920x1080)

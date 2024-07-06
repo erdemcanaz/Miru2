@@ -10,18 +10,36 @@ class WristCursor:
         self.CURSOR_SMOOTHING_FACTOR = 0.4 # smoothing factor for cursor movement
 
         self.WRIST_DETECTION_THRESHOLD = 0.70 # if the confidence of the wrist detection is below this value, it will be ignored
-        self.DETECTION_TIMEOUT_S = 0.75 # if the wrist is not detected for this amount of time in seconds, the cursor will be hidden
+        self.DETECTION_TIMEOUT_S = 2 # if the wrist is not detected for this amount of time in seconds, the cursor will be hidden
         self.WIDTH_NORMALIZED_CURSOR_SIZE = 0.03 # width of the cursor in the normalized coordinates were base is frame width
         self.NORMALIZED_OPAQUE_CURSOR_REGION = [0.8, 0, 1, 0.5]
 
-        self.PARAM_BUTTON_REGIONS = {
-            "how_to_use": [0.8, 0, 1, 0.5],
-            "pass_me": [0.8, 0.5, 1, 1]
+        self.HOLDING_THRESHOLDS = {
+            "how_to_use": 1.5,
+            "pass_me": 5
         }
+
+        self.PARAM_BUTTON_REGIONS = {
+            "how_to_use": [0.775, 0.025, 0.975, 0.225],
+            "pass_me": [0.775, 0.250, 0.975, 0.450]
+        }
+
+        self.MODES = (
+            "both_unclicked", #0
+            "how_to_use_holding", #1
+            "how_to_use_activated", #2
+            "pass_me_holding", #3
+            "pass_me_activated" #4
+            )
+        self.mode = self.MODES[0]
 
         self.last_time_wrist_updated = [0,0] # wrist-1, wrist-2 last update time
         self.normalized_wrist_coordinates = [[0,0],[0,0]] # wrist-1, wrist-2
         self.normalized_cursor_coordinates = [[0,0], [0,0]] # cursor-1, cursor-2
+
+        self.pass_me_started_holding_time = 0
+        self.how_to_use_started_holding_time = 0
+
 
     def is_inside_normalized_region(self, region:List[Tuple[float,float,float,float]], point:List[Tuple[float,float]]):
         return region[0] < point[0] < region[2] and region[1] < point[1] < region[3]
@@ -90,7 +108,10 @@ class WristCursor:
             else:
                 picasso.draw_image_on_frame(frame=frame, image_name="wrist_mouse_icon_transparent", x=cursor_topleft_x, y=cursor_topleft_y, width=cursor_image_edge_length, height=cursor_image_edge_length, maintain_aspect_ratio = True)
 
-    def draw_buttons_on_frame(self, frame:np.ndarray=None, is_how_to_use_clicked:bool=False, is_pass_me_clicked:bool=False):
+    def draw_buttons_on_frame(self, frame:np.ndarray=None):
+        #TODO: get the current mode of the cursor and operate accordingly
+
+        # HOW TO USE BUTTON =======================
         how_to_use_x1 = int(self.PARAM_BUTTON_REGIONS["how_to_use"][0]*frame.shape[1])
         how_to_use_y1 = int(self.PARAM_BUTTON_REGIONS["how_to_use"][1]*frame.shape[0])
         how_to_use_x2 = int(self.PARAM_BUTTON_REGIONS["how_to_use"][2]*frame.shape[1])
@@ -98,58 +119,52 @@ class WristCursor:
         how_to_use_width = how_to_use_x2 - how_to_use_x1
         how_to_use_height = how_to_use_y2 - how_to_use_y1
 
-        
-        if is_how_to_use_clicked:
-            picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_clicked", x=how_to_use_x1, y=how_to_use_y1, width=how_to_use_width, height=how_to_use_height, maintain_aspect_ratio = True)
+        if self.mode in ["how_to_use_holding", "how_to_use_activated"]:
+            picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_clicked", x=how_to_use_x1, y=how_to_use_y1, width=how_to_use_width, height=how_to_use_height, maintain_aspect_ratio = False)
         else:
-            picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_unclicked", x=how_to_use_x1, y=how_to_use_y1, width=how_to_use_width, height=how_to_use_height, maintain_aspect_ratio = True)
+            picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_unclicked", x=how_to_use_x1, y=how_to_use_y1, width=how_to_use_width, height=how_to_use_height, maintain_aspect_ratio = False)
         
-        picasso.draw_image_on_frame(frame=frame, image_name="beni_gecir_unclicked", x=1050, y=192, width=200, height=100, maintain_aspect_ratio = True)
+        # PASS ME BUTTON =======================
+        pass_me_x1 = int(self.PARAM_BUTTON_REGIONS["pass_me"][0]*frame.shape[1])
+        pass_me_y1 = int(self.PARAM_BUTTON_REGIONS["pass_me"][1]*frame.shape[0])
+        pass_me_x2 = int(self.PARAM_BUTTON_REGIONS["pass_me"][2]*frame.shape[1])
+        pass_me_y2 = int(self.PARAM_BUTTON_REGIONS["pass_me"][3]*frame.shape[0])
+        pass_me_width = pass_me_x2 - pass_me_x1
+        pass_me_height = pass_me_y2 - pass_me_y1     
 
-    def decide_on_mode(self, frame:np.ndarray=None):
-        if self.normalized_cursor_coordinates[0][0] > self.NORMALIZED_OPAQUE_CURSOR_REGION[0] and self.normalized_cursor_coordinates[0][0] < self.NORMALIZED_OPAQUE_CURSOR_REGION[2] and self.normalized_cursor_coordinates[0][1] > self.NORMALIZED_OPAQUE_CURSOR_REGION[1] and self.normalized_cursor_coordinates[0][1] < self.NORMALIZED_OPAQUE_CURSOR_REGION[3]:
-            return "how_to_use"
-        elif self.normalized_cursor_coordinates[0][0] > self.NORMALIZED_OPAQUE_CURSOR_REGION[0] and self.normalized_cursor_coordinates[0][0] < self.NORMALIZED_OPAQUE_CURSOR_REGION[2] and self.normalized_cursor_coordinates[0][1] > self.NORMALIZED_OPAQUE_CURSOR_REGION[3] and self.normalized_cursor_coordinates[0][1] < 1:
-            return "pass_me"
-        
+        if self.mode in ["pass_me_holding", "pass_me_activated"]:
+            picasso.draw_image_on_frame(frame=frame, image_name="beni_gecir_clicked", x=pass_me_x1, y=pass_me_y1, width=pass_me_width, height=pass_me_height, maintain_aspect_ratio = False)
+        else:
+            picasso.draw_image_on_frame(frame=frame, image_name="beni_gecir_unclicked", x=pass_me_x1, y=pass_me_y1, width=pass_me_width, height=pass_me_height, maintain_aspect_ratio = False)
 
-    # wrist_detections = [] 
-    # for person in pose_pred_dicts:
-    #     #print(f"person: {person['detection_id']}")
-    #     if person["keypoints"]["left_wrist"][2] > 0.80: 
-    #         wrist_detections.append(person["keypoints"]["left_wrist"])
-    #     if person["keypoints"]["right_wrist"][2] > 0.80:
-    #         wrist_detections.append(person["keypoints"]["right_wrist"])
+    def update_wrist_cursor_mode(self):
 
-    # wrist_x = 0
-    # wrist_y = 0
-    # show_wrist_cursor = False
-    # for wrist in wrist_detections:
-    #     #print(f"wrist: {wrist}")
-    #     wrist_x_p = int(wrist[0]*coordinate_transform_coefficients[0])
-    #     wrist_y_p = max(0,int(wrist[1]*coordinate_transform_coefficients[1]-100))
+        is_cursor_1_active = True if (time.time()-self.last_time_wrist_updated[0]) < self.DETECTION_TIMEOUT_S else False
+        is_cursor_2_active = True if (time.time()-self.last_time_wrist_updated[1]) < self.DETECTION_TIMEOUT_S else False
 
-    #     if not(wrist_x_p > 900 and wrist_y_p < 360):           
-    #         break
+        # first check how_to_use is clicked or not, then pass_me
 
-    #     wrist_x = wrist_x_p
-    #     wrist_y = wrist_y_p        
-    #     show_wrist_cursor = True
+        is_on_how_to_use = is_cursor_1_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["how_to_use"], self.normalized_cursor_coordinates[0])
+        is_on_how_to_use = is_on_how_to_use or (is_cursor_2_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["how_to_use"], self.normalized_cursor_coordinates[1]))
 
-    #     if wrist_x > 1040 and wrist_x < 1280 and wrist_y > 0 and wrist_y < 170:
-    #         mode = "how_to_use"
+        is_on_pass_me = is_cursor_1_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["pass_me"], self.normalized_cursor_coordinates[0])
+        is_on_pass_me = is_on_pass_me or (is_cursor_2_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["pass_me"], self.normalized_cursor_coordinates[1]))
 
-    #     if wrist_x > 1040 and wrist_x < 1280 and wrist_y > 170 and wrist_y < 340:
-    #         mode = "pass_me"
+        if is_on_how_to_use:
+            if self.mode not in  ["how_to_use_holding","how_to_use_activated"]:
+                self.how_to_use_started_holding_time = time.time()
+                self.mode = "how_to_use_holding"
+            elif time.time() - self.how_to_use_started_holding_time > self.HOLDING_THRESHOLDS["how_to_use"]:
+                self.mode = "how_to_use_activated"
 
-    # if mode == "normal":
-    #     picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_unclicked", x=1050, y=30, width=200, height=100, maintain_aspect_ratio = True)
-    #     picasso.draw_image_on_frame(frame=frame, image_name="beni_gecir_unclicked", x=1050, y=192, width=200, height=100, maintain_aspect_ratio = True)
-    # elif mode == "how_to_use":
-    #     picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_clicked", x=1050, y=30, width=200, height=100, maintain_aspect_ratio = True)
-    #     picasso.draw_image_on_frame(frame=frame, image_name="beni_gecir_unclicked", x=1050, y=192, width=200, height=100, maintain_aspect_ratio = True)
-    # elif mode == "pass_me":
-    #     picasso.draw_image_on_frame(frame=frame, image_name="nasil_kullanirim_unclicked", x=1050, y=30, width=200, height=100, maintain_aspect_ratio = True)
-    #     picasso.draw_image_on_frame(frame=frame, image_name="beni_gecir_clicked", x=1050, y=192, width=200, height=100, maintain_aspect_ratio = True)
-    # #if show_wrist_cursor: picasso.draw_image_on_frame(frame=frame, image_name="wrist_mouse_icon", x=wrist_x, y=wrist_y, width=60, height=60, maintain_aspect_ratio = True)
-    # wrist_cursor_object.draw_wrist_cursor_on_frame(frame)
+        elif is_on_pass_me:
+            if self.mode not in ["pass_me_holding","pass_me_activated"]:
+                self.pass_me_started_holding_time = time.time()
+                self.mode = "pass_me_holding"
+            elif time.time() - self.pass_me_started_holding_time > self.HOLDING_THRESHOLDS["pass_me"]:
+                self.mode = "pass_me_activated"
+        else:
+            self.mode = "both_unclicked"
+
+    def get_mode(self):
+        return self.mode
