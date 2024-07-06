@@ -100,6 +100,8 @@ while True:
        
     if wrist_cursor_object.get_mode() == "how_to_use_activated":
         picasso.draw_image_on_frame(frame=frame, image_name="miru_how_to_use_page", x=0, y=0, width=frame.shape[1], height=frame.shape[0], maintain_aspect_ratio = False)
+    elif wrist_cursor_object.get_mode() in ["pass_me_holding", "pass_me_activated"]:
+        wrist_cursor_object.display_pass_me_holding_percentage(frame)
 
     # Show frame    
     frame = cv2.resize(frame, (PARAM_DISPLAY_SIZE[0], PARAM_DISPLAY_SIZE[1])) # resize the frame to the display size (1920x1080)

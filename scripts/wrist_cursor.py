@@ -2,6 +2,7 @@ from typing import List, Dict, Tuple #for python3.8 compatibility
 import numpy as np
 import time
 import picasso
+import cv2 
 
 class WristCursor:
 
@@ -10,7 +11,7 @@ class WristCursor:
         self.CURSOR_SMOOTHING_FACTOR = 0.4 # smoothing factor for cursor movement
 
         self.WRIST_DETECTION_THRESHOLD = 0.70 # if the confidence of the wrist detection is below this value, it will be ignored
-        self.DETECTION_TIMEOUT_S = 2 # if the wrist is not detected for this amount of time in seconds, the cursor will be hidden
+        self.DETECTION_TIMEOUT_S = 1.5 # if the wrist is not detected for this amount of time in seconds, the cursor will be hidden
         self.WIDTH_NORMALIZED_CURSOR_SIZE = 0.03 # width of the cursor in the normalized coordinates were base is frame width
         self.NORMALIZED_OPAQUE_CURSOR_REGION = [0.8, 0, 1, 0.5]
 
@@ -37,8 +38,8 @@ class WristCursor:
         self.normalized_wrist_coordinates = [[0,0],[0,0]] # wrist-1, wrist-2
         self.normalized_cursor_coordinates = [[0,0], [0,0]] # cursor-1, cursor-2
 
-        self.pass_me_started_holding_time = 0
         self.how_to_use_started_holding_time = 0
+        self.pass_me_started_holding_time = 0
 
 
     def is_inside_normalized_region(self, region:List[Tuple[float,float,float,float]], point:List[Tuple[float,float]]):
@@ -165,6 +166,34 @@ class WristCursor:
                 self.mode = "pass_me_activated"
         else:
             self.mode = "both_unclicked"
+
+    def display_pass_me_holding_percentage(self,frame:np.ndarray=None):
+        hold_duration = time.time()- self.pass_me_started_holding_time
+        percentage = min(1, hold_duration/self.HOLDING_THRESHOLDS["pass_me"])
+        frame_height, frame_width, _ = frame.shape
+
+        # Calculate the dimensions of the rectangle
+        rect_width = int(frame_width * 0.5)
+        rect_height = int(frame_height * 0.1)
+        rect_x = int((frame_width - rect_width) / 2)
+        rect_y = int((frame_height - rect_height) / 3.75)
+
+        # Draw the rectangle on the frame
+        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + rect_width, rect_y + rect_height), (0, 0, 255), -1)
+
+        # Calculate the width of the filled portion of the rectangle based on the percentage
+        fill_width = int(rect_width * percentage)
+
+        # Draw the filled portion of the rectangle
+        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + fill_width, rect_y + rect_height), (0, 255, 0), -1)
+
+        # Add text to display the percentage
+        text = f"{int(percentage * 100)}%" if percentage < 1 else "GECEBILIRSINIZ"
+        text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
+        text_x = int((frame_width - text_size[0]) / 2)
+        text_y = int((frame_height + text_size[1]) / 4)
+        cv2.putText(frame, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
 
     def get_mode(self):
         return self.mode
