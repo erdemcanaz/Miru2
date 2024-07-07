@@ -7,17 +7,17 @@ import cv2
 class WristCursor:
 
     def __init__(self):
-        self.PARAM_WRIST_UP_FACTOR = 0.00 # cursor should be above the wrist by this factor for better UX
+        self.PARAM_WRIST_UP_FACTOR = 0.03 # cursor should be above the wrist by this factor for better UX
         self.CURSOR_SMOOTHING_FACTOR = 0.2 # smoothing factor for cursor movement
 
-        self.WRIST_DETECTION_THRESHOLD = 0.70 # if the confidence of the wrist detection is below this value, it will be ignored
+        self.WRIST_DETECTION_THRESHOLD = 0.65 # if the confidence of the wrist detection is below this value, it will be ignored
         self.DETECTION_TIMEOUT_S = 1.25 # if the wrist is not detected for this amount of time in seconds, the cursor will be hidden
         self.WIDTH_NORMALIZED_CURSOR_SIZE = 0.03 # width of the cursor in the normalized coordinates were base is frame width
         self.NORMALIZED_OPAQUE_CURSOR_REGION = [0.8, 0, 1, 0.5]
 
         self.HOLDING_THRESHOLDS = {
             "how_to_use": 1.5,
-            "pass_me": 5
+            "pass_me": 10
         }
 
         self.PARAM_BUTTON_REGIONS = {

@@ -55,6 +55,8 @@ class SlideShow():
         self.opacity = max(0.0, self.opacity - 0.05)
 
     def draw_slide_on_top_of_frame(self, frame:np.ndarray, slide_frame:np.ndarray):
+        if self.opacity == 0: # If opacity is 0, no need to draw slide on top of frame, extra processing
+            return frame
         return_frame = copy.deepcopy(frame)
         cv2.addWeighted(slide_frame, self.opacity, return_frame, 1 - self.opacity, 0, return_frame)
         return return_frame
