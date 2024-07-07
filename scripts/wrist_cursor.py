@@ -8,7 +8,7 @@ class WristCursor:
 
     def __init__(self):
         self.PARAM_WRIST_UP_FACTOR = 0.00 # cursor should be above the wrist by this factor for better UX
-        self.CURSOR_SMOOTHING_FACTOR = 0.4 # smoothing factor for cursor movement
+        self.CURSOR_SMOOTHING_FACTOR = 0.2 # smoothing factor for cursor movement
 
         self.WRIST_DETECTION_THRESHOLD = 0.70 # if the confidence of the wrist detection is below this value, it will be ignored
         self.DETECTION_TIMEOUT_S = 1.25 # if the wrist is not detected for this amount of time in seconds, the cursor will be hidden
@@ -167,9 +167,16 @@ class WristCursor:
         else:
             self.mode = "both_unclicked"
 
-    def display_pass_me_holding_percentage(self,frame:np.ndarray=None):
+    def display_pass_me_holding_percentage(self,frame:np.ndarray=None, is_arduion_connected:bool=False, is_turnstile_on:bool=False):
+
+        if not is_arduion_connected:
+            self.pass_me_started_holding_time = time.time()
         hold_duration = time.time()- self.pass_me_started_holding_time
         percentage = min(1, hold_duration/self.HOLDING_THRESHOLDS["pass_me"])
+
+        if is_arduion_connected and is_turnstile_on:
+            percentage = 1
+
         frame_height, frame_width, _ = frame.shape
 
         # Calculate the dimensions of the rectangle
@@ -179,16 +186,19 @@ class WristCursor:
         rect_y = int((frame_height - rect_height) //1.05)
 
         # Draw the rectangle on the frame
-        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + rect_width, rect_y + rect_height), (0, 0, 255), -1)
+        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + rect_width, rect_y + rect_height), (246, 242, 211), -1)
 
         # Calculate the width of the filled portion of the rectangle based on the percentage
         fill_width = int(rect_width * percentage)
 
         # Draw the filled portion of the rectangle
-        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + fill_width, rect_y + rect_height), (0, 255, 0), -1)
+        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + fill_width, rect_y + rect_height), (169, 96, 0), -1)
 
         # Add text to display the percentage
-        text = f"Gecmenize {(1-percentage)*self.HOLDING_THRESHOLDS['pass_me']:.2f}s" if percentage < 1 else "GECEBILIRSINIZ"
+        if not is_arduion_connected:
+            text = "TURNIKE BAGLANTISI YOK"
+        else:
+            text = f"SABUN ALMANIZA {(1-percentage)*self.HOLDING_THRESHOLDS['pass_me']:.2f}s" if percentage < 1 else "SABUN ALABILIRSINIZ"
         text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
         text_x = int((frame_width - text_size[0]) / 2)
         text_y = int(rect_y-10)

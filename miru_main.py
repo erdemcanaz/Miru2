@@ -68,13 +68,16 @@ while True:
 
     #Arduino communication test
     arduino_communicator_object.ensure_connection()
-    if arduino_communicator_object.get_connection_status():
+
+    is_arduino_connected = arduino_communicator_object.get_connection_status()
+    if is_arduino_connected:
         picasso.draw_image_on_frame(frame=frame, image_name="arduino_connection_blue", x=10, y=10, width=60, height=60, maintain_aspect_ratio=False)
     else:
         picasso.draw_image_on_frame(frame=frame, image_name="arduino_connection_grey", x=10, y=10, width=60, height=60, maintain_aspect_ratio=False)
 
     # draw turnstile status icon
-    if time.time() - last_time_turnstile_activated < PARAM_KEEP_TURNED_ON_TIME:
+    is_turnstile_on = time.time() - last_time_turnstile_activated < PARAM_KEEP_TURNED_ON_TIME
+    if is_turnstile_on and arduino_communicator_object.get_connection_status():
         picasso.draw_image_on_frame(frame=frame, image_name="turnstile_blue", x=80, y=10, width=60, height=60, maintain_aspect_ratio=False)
     else:
         picasso.draw_image_on_frame(frame=frame, image_name="tursntile_grey", x=80, y=10, width=60, height=60, maintain_aspect_ratio=False)
@@ -89,9 +92,9 @@ while True:
     main_face_pose_detection_id = face_manager_with_memory_object.get_main_face_detection_id()
 
     wrist_cursor_object.update_wrist_cursor_position(main_face_pose_detection_id=main_face_pose_detection_id, pose_pred_dicts=pose_pred_dicts, predicted_frame=resized_frame)
-    wrist_cursor_object.draw_wrist_cursor_on_frame(frame)
     wrist_cursor_object.update_wrist_cursor_mode()
     wrist_cursor_object.draw_buttons_on_frame(frame)
+    wrist_cursor_object.draw_wrist_cursor_on_frame(frame)
  
     equipment_detector_object.predict_frame(resized_frame, bbox_confidence=0.35)
     equipment_formatted_predictions = equipment_detector_object.return_formatted_predictions_list()
@@ -136,8 +139,8 @@ while True:
         # Place the shrunk UI at the bottom right with clearance
         frame[y_position:y_position + ui_shrinked.shape[0], x_position:x_position + ui_shrinked.shape[1]] = ui_shrinked
 
-    elif wrist_cursor_object.get_mode() in ["pass_me_holding", "pass_me_activated"]:
-        wrist_cursor_object.display_pass_me_holding_percentage(frame)
+    elif is_turnstile_on or wrist_cursor_object.get_mode() in ["pass_me_holding", "pass_me_activated"]:
+        wrist_cursor_object.display_pass_me_holding_percentage(frame, is_arduion_connected=is_arduino_connected, is_turnstile_on=is_turnstile_on)
 
     # Show frame    
     frame = cv2.resize(frame, (PARAM_DISPLAY_SIZE[0], PARAM_DISPLAY_SIZE[1])) # resize the frame to the display size (1920x1080)
