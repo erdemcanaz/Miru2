@@ -19,7 +19,7 @@ class PoseDetector():
         self.yolo_object = YOLO( self.MODEL_PATH, verbose= True)        
         self.recent_prediction_results = None # This will be a list of dictionaries, each dictionary will contain the prediction results for a single detection
 
-    def get_empty_prediction_dict_template(self) -> dict:
+    def __get_empty_prediction_dict_template(self) -> dict:
         empty_prediction_dict = {   
                     "DETECTOR_TYPE":"PoseDetector",                             # which detector made this prediction
                     "detection_id":str(uuid.uuid4()),                           # unique id for the detection
@@ -66,7 +66,7 @@ class PoseDetector():
                 continue
             box_xyxy = boxes.xyxy.cpu().numpy()[0]
 
-            prediction_dict_template = self.get_empty_prediction_dict_template()
+            prediction_dict_template = self.__get_empty_prediction_dict_template()
             prediction_dict_template["frame_shape"] = list(results.orig_shape)
             prediction_dict_template["detection_id"] = str(uuid.uuid4()) #unique id for the detection
             prediction_dict_template["class_name"] = box_cls_name

@@ -41,7 +41,6 @@ class WristCursor:
         self.how_to_use_started_holding_time = 0
         self.pass_me_started_holding_time = 0
 
-
     def is_inside_normalized_region(self, region:List[Tuple[float,float,float,float]], point:List[Tuple[float,float]]):
         return region[0] < point[0] < region[2] and region[1] < point[1] < region[3]
     
@@ -83,6 +82,31 @@ class WristCursor:
 
                 break
 
+    def update_wrist_cursor_mode(self):
+        is_cursor_1_active = True if (time.time()-self.last_time_wrist_updated[0]) < self.DETECTION_TIMEOUT_S else False
+        is_cursor_2_active = True if (time.time()-self.last_time_wrist_updated[1]) < self.DETECTION_TIMEOUT_S else False
+
+        #NOTE:  first check "how_to_use" is clicked or not, then check for "pass_me" since both buttons can be clicked at the same time
+
+        is_on_how_to_use = ( is_cursor_1_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["how_to_use"], self.normalized_cursor_coordinates[0]) ) or (is_cursor_2_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["how_to_use"], self.normalized_cursor_coordinates[1]))
+        is_on_pass_me = (is_cursor_1_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["pass_me"], self.normalized_cursor_coordinates[0])) or  (is_cursor_2_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["pass_me"], self.normalized_cursor_coordinates[1]))
+
+        if is_on_how_to_use:
+            if self.mode not in  ["how_to_use_holding","how_to_use_activated"]:
+                self.how_to_use_started_holding_time = time.time()
+                self.mode = "how_to_use_holding"
+            elif time.time() - self.how_to_use_started_holding_time > self.HOLDING_THRESHOLDS["how_to_use"]:
+                self.mode = "how_to_use_activated"
+
+        elif is_on_pass_me:
+            if self.mode not in ["pass_me_holding","pass_me_activated"]:
+                self.pass_me_started_holding_time = time.time()
+                self.mode = "pass_me_holding"
+            elif time.time() - self.pass_me_started_holding_time > self.HOLDING_THRESHOLDS["pass_me"]:
+                self.mode = "pass_me_activated"
+        else:
+            self.mode = "both_unclicked"
+
     def draw_wrist_cursor_on_frame(self, frame:np.ndarray=None, draw_cursor_1:bool=True, draw_cursor_2:bool=True, apply_timeout:bool=True):
         for i in range(2):
             if i == 0 and not draw_cursor_1:
@@ -110,7 +134,6 @@ class WristCursor:
                 picasso.draw_image_on_frame(frame=frame, image_name="wrist_mouse_icon_transparent", x=cursor_topleft_x, y=cursor_topleft_y, width=cursor_image_edge_length, height=cursor_image_edge_length, maintain_aspect_ratio = True)
 
     def draw_buttons_on_frame(self, frame:np.ndarray=None):
-        #TODO: get the current mode of the cursor and operate accordingly
 
         # HOW TO USE BUTTON =======================
         how_to_use_x1 = int(self.PARAM_BUTTON_REGIONS["how_to_use"][0]*frame.shape[1])
@@ -138,35 +161,6 @@ class WristCursor:
         else:
             picasso.draw_image_on_frame(frame=frame, image_name="beni_gecir_unclicked", x=pass_me_x1, y=pass_me_y1, width=pass_me_width, height=pass_me_height, maintain_aspect_ratio = False)
 
-    def update_wrist_cursor_mode(self):
-
-        is_cursor_1_active = True if (time.time()-self.last_time_wrist_updated[0]) < self.DETECTION_TIMEOUT_S else False
-        is_cursor_2_active = True if (time.time()-self.last_time_wrist_updated[1]) < self.DETECTION_TIMEOUT_S else False
-
-        # first check how_to_use is clicked or not, then pass_me
-
-        is_on_how_to_use = is_cursor_1_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["how_to_use"], self.normalized_cursor_coordinates[0])
-        is_on_how_to_use = is_on_how_to_use or (is_cursor_2_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["how_to_use"], self.normalized_cursor_coordinates[1]))
-
-        is_on_pass_me = is_cursor_1_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["pass_me"], self.normalized_cursor_coordinates[0])
-        is_on_pass_me = is_on_pass_me or (is_cursor_2_active and self.is_inside_normalized_region(self.PARAM_BUTTON_REGIONS["pass_me"], self.normalized_cursor_coordinates[1]))
-
-        if is_on_how_to_use:
-            if self.mode not in  ["how_to_use_holding","how_to_use_activated"]:
-                self.how_to_use_started_holding_time = time.time()
-                self.mode = "how_to_use_holding"
-            elif time.time() - self.how_to_use_started_holding_time > self.HOLDING_THRESHOLDS["how_to_use"]:
-                self.mode = "how_to_use_activated"
-
-        elif is_on_pass_me:
-            if self.mode not in ["pass_me_holding","pass_me_activated"]:
-                self.pass_me_started_holding_time = time.time()
-                self.mode = "pass_me_holding"
-            elif time.time() - self.pass_me_started_holding_time > self.HOLDING_THRESHOLDS["pass_me"]:
-                self.mode = "pass_me_activated"
-        else:
-            self.mode = "both_unclicked"
-
     def display_pass_me_holding_percentage(self,frame:np.ndarray=None, is_arduion_connected:bool=False, is_turnstile_on:bool=False):
 
         if not is_arduion_connected:
@@ -185,14 +179,9 @@ class WristCursor:
         rect_x = int((frame_width - rect_width) / 2)
         rect_y = int((frame_height - rect_height) //1.05)
 
-        # Draw the rectangle on the frame
-        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + rect_width, rect_y + rect_height), (246, 242, 211), -1)
-
-        # Calculate the width of the filled portion of the rectangle based on the percentage
         fill_width = int(rect_width * percentage)
-
-        # Draw the filled portion of the rectangle
-        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + fill_width, rect_y + rect_height), (169, 96, 0), -1)
+        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + rect_width, rect_y + rect_height), (246, 242, 211), -1) # background rectangle
+        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + fill_width, rect_y + rect_height), (169, 96, 0), -1) # increasing rectangle
 
         # Add text to display the percentage
         if not is_arduion_connected:
@@ -203,7 +192,6 @@ class WristCursor:
         text_x = int((frame_width - text_size[0]) / 2)
         text_y = int(rect_y-10)
         cv2.putText(frame, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
 
     def get_mode(self):
         return self.mode

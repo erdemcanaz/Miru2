@@ -49,8 +49,7 @@ IMAGE_PATHS = {
     "arduino_connection_grey": "src/images/icons/arduino_connection_grey.png",
 }
 
-
-def get_image_as_frame(image_name:str=None, width:int=100, height:int=100, maintain_aspect_ratio:bool = True):
+def get_image_as_frame(image_name:str=None, width:int=1920, height:int=1080, maintain_aspect_ratio:bool = True):
     global IMAGE_PATHS
     image_path = IMAGE_PATHS[image_name]
     image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
@@ -65,7 +64,6 @@ def get_image_as_frame(image_name:str=None, width:int=100, height:int=100, maint
 
     return image
 
-
 def draw_image_on_frame(frame:np.ndarray=None, image_name:str=None, x:int=None, y:int=None, width:int=100, height:int=100, maintain_aspect_ratio:bool = True):
     global IMAGE_PATHS
     image_path = IMAGE_PATHS[image_name]
@@ -78,7 +76,6 @@ def draw_image_on_frame(frame:np.ndarray=None, image_name:str=None, x:int=None, 
         image = cv2.resize(image, (int(im_width * scale), int(im_height * scale)), interpolation=cv2.INTER_AREA)
     else:
         image = cv2.resize(image, (width, height),interpolation=cv2.INTER_AREA)
-
 
     # Draw image on frame
     frame_height, frame_width = frame.shape[0], frame.shape[1]
@@ -101,6 +98,5 @@ def draw_image_on_frame(frame:np.ndarray=None, image_name:str=None, x:int=None, 
         
         for c in range(0, 3):                               # Loop over the RGB channels
             frame_roi[:, :, c] = (frame_roi[:, :, c] * (1 - image_alpha) + image_roi[:, :, c] * image_alpha).astype(np.uint8)
-
     else:
         frame[roi_y1:roi_y2, roi_x1:roi_x2] = image_roi

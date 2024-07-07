@@ -127,130 +127,88 @@ class Face:
             
         return True
 
-   
-    def draw_face(self, frame:np.ndarray=None, is_main_face:bool = None, stripe_stroke:int=1, bold_stroke:int=5, coordinate_transform_coefficients=[1,1]):
-        self.face_bbox_transformed = [int(self.face_bbox[0]*coordinate_transform_coefficients[0]), int(self.face_bbox[1]*coordinate_transform_coefficients[1]), int(self.face_bbox[2]*coordinate_transform_coefficients[0]), int(self.face_bbox[3]*coordinate_transform_coefficients[1])]
-        if is_main_face:
-            stroke_color = (108,208,142) if self.is_allowed_to_pass() else (82,82,255) #green or red
-            self.__draw_face_detection_rectangle_on(is_draw_scan_line=True, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)   
-            self.__add_equipment_icons_main_face(frame=frame)
-
-            max_width = (self.face_bbox[2] - self.face_bbox[0])//5
-            max_height = (self.face_bbox[3] - self.face_bbox[1])//5
-            self.__add_approval_disapproval_icons(frame=frame, is_approved=self.is_allowed_to_pass(), max_width=max_width, max_height=max_height)
+    def draw_face(self, frame: np.ndarray = None, is_main_face: bool = None, stripe_stroke: int = 1, bold_stroke: int = 5, coordinate_transform_coefficients=[1, 1]):
+        self.face_bbox_transformed = [
+            int(self.face_bbox[0] * coordinate_transform_coefficients[0]),
+            int(self.face_bbox[1] * coordinate_transform_coefficients[1]),
+            int(self.face_bbox[2] * coordinate_transform_coefficients[0]),
+            int(self.face_bbox[3] * coordinate_transform_coefficients[1])
+        ]
         
-        else:
-            stroke_color = (186,186,186)
-            self.__draw_face_detection_rectangle_on(is_draw_scan_line=False, frame=frame, stroke_color=stroke_color, stripe_stroke=stripe_stroke, bold_stroke=bold_stroke)
-            self._add_equipment_icons_secondary_faces(frame=frame)
-            
-    def __draw_face_detection_rectangle_on(self, is_draw_scan_line:bool=False, frame:np.ndarray=None, stroke_color:Tuple[int,int,int]=(0,0,0), stripe_stroke:int=1, bold_stroke:int=5) -> np.ndarray:
-    
-        #draw bounding edges
-        cv2.rectangle(frame, (self.face_bbox_transformed[0],self.face_bbox_transformed[1]),  (self.face_bbox_transformed[2],self.face_bbox_transformed[3]), stroke_color, stripe_stroke)
+        stroke_color = (108, 208, 142) if is_main_face and self.is_allowed_to_pass() else (82, 82, 255) if is_main_face else (186, 186, 186)
+        is_draw_scan_line = is_main_face
+        self.__draw_face_detection_rectangle_on(frame, stroke_color, stripe_stroke, bold_stroke, is_draw_scan_line)
+        
+        max_height = (self.face_bbox_transformed[3] - self.face_bbox_transformed[1]) // 4 + 1
+        x_shift = 25
+        top_right_corner = (self.face_bbox_transformed[2], self.face_bbox_transformed[1])
+        y_shift = 0
+        colors = {
+            True: "green_" if is_main_face else "grey_",
+            False: "red_" if is_main_face else "grey_"
+        }
+        
+        equipment_rules = [
+            ("hairnet", self.obeyed_rules["is_hairnet_worn"]),
+            ("goggles", self.obeyed_rules["is_safety_google_worn"]),
+            ("surgical_mask", self.obeyed_rules["is_surgical_mask_worn"]),
+            ("beardnet", self.obeyed_rules["is_beardnet_worn"])
+        ]
+        
+        rules_to_show_only_if_present = ["surgical_mask", "beardnet"] #Some equipments are not mandatory, but should be shown if present
+        for equipment, equipment_presence in equipment_rules:
+                if equipment_presence == False and (equipment in rules_to_show_only_if_present): 
+                    continue
 
-        #draw bold corners
-        bbox_coordinates = [(self.face_bbox_transformed[0],self.face_bbox_transformed[1] ),(self.face_bbox_transformed[2],self.face_bbox_transformed[3] )]
-        width =  bbox_coordinates[1][0] -  bbox_coordinates[0][0]
-        height =  bbox_coordinates[1][1] -  bbox_coordinates[0][1]
+                picasso.draw_image_on_frame(frame, f"{colors[equipment_presence]}{equipment}", top_right_corner[0] + x_shift, top_right_corner[1] + y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
+                y_shift += max_height
 
-        topleft_corner =  bbox_coordinates[0]
-        topleft_1 = (topleft_corner[0]+width//3, topleft_corner[1])
-        topleft_2 = (topleft_corner[0], topleft_corner[1]+height//3)                
-        cv2.line(frame, topleft_corner, topleft_1, stroke_color, bold_stroke)
-        cv2.line(frame, topleft_corner, topleft_2, stroke_color, bold_stroke)
+        if is_main_face:
+            max_width = (self.face_bbox[2] - self.face_bbox[0]) // 5
+            max_height = (self.face_bbox[3] - self.face_bbox[1]) // 5
+            self.__add_approval_disapproval_icons(frame, self.is_allowed_to_pass(), max_width, max_height)
 
-        topright_corner = ( bbox_coordinates[1][0],  bbox_coordinates[0][1])
-        topright_1 = (topright_corner[0]-width//3, topright_corner[1])
-        topright_2 = (topright_corner[0], topright_corner[1]+height//3)
-        cv2.line(frame, topright_corner, topright_1, stroke_color, bold_stroke)
-        cv2.line(frame, topright_corner, topright_2, stroke_color, bold_stroke)
+    def __draw_face_detection_rectangle_on(self, frame: np.ndarray, stroke_color: Tuple[int, int, int], stripe_stroke: int, bold_stroke: int, is_draw_scan_line: bool = False) -> np.ndarray:
+        # Draw bounding edges
+        cv2.rectangle(frame, (self.face_bbox_transformed[0], self.face_bbox_transformed[1]), (self.face_bbox_transformed[2], self.face_bbox_transformed[3]), stroke_color, stripe_stroke)
 
-        bottomleft_corner = ( bbox_coordinates[0][0],  bbox_coordinates[1][1])
-        bottomleft_1 = (bottomleft_corner[0]+width//3, bottomleft_corner[1])
-        bottomleft_2 = (bottomleft_corner[0], bottomleft_corner[1]-height//3)
-        cv2.line(frame, bottomleft_corner, bottomleft_1, stroke_color, bold_stroke)
-        cv2.line(frame, bottomleft_corner, bottomleft_2, stroke_color, bold_stroke)
+        # Draw bold corners
+        bbox_coordinates = [(self.face_bbox_transformed[0], self.face_bbox_transformed[1]), (self.face_bbox_transformed[2], self.face_bbox_transformed[3])]
+        width = bbox_coordinates[1][0] - bbox_coordinates[0][0]
+        height = bbox_coordinates[1][1] - bbox_coordinates[0][1]
 
-        bottomright_corner =  bbox_coordinates[1]
-        bottomright_1 = (bottomright_corner[0]-width//3, bottomright_corner[1])
-        bottomright_2 = (bottomright_corner[0], bottomright_corner[1]-height//3)
-        cv2.line(frame, bottomright_corner, bottomright_1, stroke_color, bold_stroke)
-        cv2.line(frame, bottomright_corner, bottomright_2, stroke_color, bold_stroke)
+        corners = [
+            (bbox_coordinates[0], (bbox_coordinates[0][0] + width // 3, bbox_coordinates[0][1]), (bbox_coordinates[0][0], bbox_coordinates[0][1] + height // 3)),
+            ((bbox_coordinates[1][0], bbox_coordinates[0][1]), (bbox_coordinates[1][0] - width // 3, bbox_coordinates[0][1]), (bbox_coordinates[1][0], bbox_coordinates[0][1] + height // 3)),
+            ((bbox_coordinates[0][0], bbox_coordinates[1][1]), (bbox_coordinates[0][0] + width // 3, bbox_coordinates[1][1]), (bbox_coordinates[0][0], bbox_coordinates[1][1] - height // 3)),
+            (bbox_coordinates[1], (bbox_coordinates[1][0] - width // 3, bbox_coordinates[1][1]), (bbox_coordinates[1][0], bbox_coordinates[1][1] - height // 3))
+        ]
 
-        #draw scanning line 
+        for corner, line1_end, line2_end in corners:
+            cv2.line(frame, corner, line1_end, stroke_color, bold_stroke)
+            cv2.line(frame, corner, line2_end, stroke_color, bold_stroke)
+
+        # Draw scanning line
         if is_draw_scan_line:
-            percentage = time.time()%1
-            if percentage < 0.5:
-                del_width = int(width * 2*percentage)
-            else:
-                del_width = int(width * 2*(1-percentage))
+            percentage = time.time() % 1
+            del_width = int(width * 2 * (percentage if percentage < 0.5 else 1 - percentage))
 
-            line_top = ( bbox_coordinates[0][0]+del_width,  bbox_coordinates[0][1])
-            line_bottom = ( bbox_coordinates[0][0]+del_width,  bbox_coordinates[1][1])
+            line_top = (bbox_coordinates[0][0] + del_width, bbox_coordinates[0][1])
+            line_bottom = (bbox_coordinates[0][0] + del_width, bbox_coordinates[1][1])
             cv2.line(frame, line_top, line_bottom, stroke_color, stripe_stroke)
             
         return frame
 
-    def __add_equipment_icons_main_face(self,frame):
-                
-        max_height = int((self.face_bbox_transformed[3] - self.face_bbox_transformed[1] )/4)+1
-
-        x_shift = 25
-        top_right_corner = (self.face_bbox_transformed[2], self.face_bbox_transformed[1])
-        y_shift = 0
-        if self.obeyed_rules["is_hairnet_worn"]:
-            picasso.draw_image_on_frame(frame=frame, image_name="green_hairnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1], width=100, height=max_height, maintain_aspect_ratio=True)
-        else:
-            picasso.draw_image_on_frame(frame=frame, image_name="red_hairnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1], width=100, height=max_height, maintain_aspect_ratio=True)
-        y_shift += max_height
-
-        if self.obeyed_rules["is_safety_google_worn"]:
-            picasso.draw_image_on_frame(frame=frame, image_name="green_goggles", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
-        else:
-            picasso.draw_image_on_frame(frame=frame, image_name="red_goggles", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
-        y_shift += max_height
-
-        if self.obeyed_rules["is_surgical_mask_worn"]:
-            picasso.draw_image_on_frame(frame=frame, image_name="green_surgical_mask", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
-            y_shift +=max_height
-
-        if self.obeyed_rules["is_beardnet_worn"]:
-            picasso.draw_image_on_frame(frame=frame, image_name="green_beardnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
-            y_shift += max_height
-
-    def _add_equipment_icons_secondary_faces(self, frame:np.ndarray):
-        max_height = int((self.face_bbox_transformed[3] - self.face_bbox_transformed[1] )/4)+1
-
-        x_shift = 25
-        top_right_corner = (self.face_bbox_transformed[2], self.face_bbox_transformed[1])
-        y_shift = 0
-        if self.obeyed_rules["is_hairnet_worn"]:
-            picasso.draw_image_on_frame(frame=frame, image_name="grey_hairnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1], width=100, height=max_height, maintain_aspect_ratio=True)
-            y_shift += max_height
-
-        if self.obeyed_rules["is_safety_google_worn"]:
-            picasso.draw_image_on_frame(frame=frame, image_name="grey_goggles", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
-            y_shift += max_height
-
-        if self.obeyed_rules["is_surgical_mask_worn"]:
-            picasso.draw_image_on_frame(frame=frame, image_name="grey_surgical_mask", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
-            y_shift +=max_height
-
-        if self.obeyed_rules["is_beardnet_worn"]:
-            picasso.draw_image_on_frame(frame=frame, image_name="grey_beardnet", x=top_right_corner[0]+x_shift, y=top_right_corner[1]+y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
-            y_shift += max_height
-
-    def __add_approval_disapproval_icons(self, frame:np.ndarray, is_approved:bool, max_width:int, max_height:int) -> np.ndarray:
+    def __add_approval_disapproval_icons(self, frame: np.ndarray, is_approved: bool, max_width: int, max_height: int) -> np.ndarray:
         icon_name = "approval" if is_approved else "disapproval"
-        x_position = self.face_bbox_transformed[0] - max_width//2
-        y_position = self.face_bbox_transformed[1] - max_height//2
-        picasso.draw_image_on_frame(frame=frame, image_name=icon_name, x=x_position, y=y_position, width=max_width, height=max_height, maintain_aspect_ratio=True)
+        x_position = self.face_bbox_transformed[0] - max_width // 2
+        y_position = self.face_bbox_transformed[1] - max_height // 2
+        picasso.draw_image_on_frame(frame, icon_name, x=x_position, y=y_position, width=max_width, height=max_height, maintain_aspect_ratio=True)
 
 class FaceTrackerManager:
     def __init__(self, face_update_overlap_threshold:float = 0.5, equipment_update_overlap_threshold:float = 0.5):
         self.FACE_UPDATE_OVERLAP_THRESHOLD = face_update_overlap_threshold #minimum overlap between face bboxes to be considered the same face
-        self.EQUIPMENT_UPDATE_OVERLAP_THRESHOLD = equipment_update_overlap_threshold
+        self.EQUIPMENT_UPDATE_OVERLAP_THRESHOLD = equipment_update_overlap_threshold #minimum overlap between face bbox and equipment bbox to be considered the same face
         self.face_objects = []
 
     def get_number_of_active_faces(self) -> int:
@@ -356,7 +314,7 @@ class FaceTrackerManager:
         for face in self.face_objects:
             face_area = face.get_bbox_area()
             if face_area > max_face_area:
-                max_area = face_area
+                max_face_area = face_area
                 should_turn_on = face.is_allowed_to_pass()
 
         return should_turn_on           

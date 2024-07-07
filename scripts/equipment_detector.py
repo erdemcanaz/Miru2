@@ -13,7 +13,7 @@ class EquipmentDetector():
         self.yolo_object = YOLO(self.MODEL_PATH)
         self.recent_prediction_results = []
     
-    def get_empty_prediction_dict_template(self) -> dict:
+    def __get_empty_prediction_dict_template(self) -> dict:
         empty_prediction_dict = {   
                     "DETECTOR_TYPE":"Equipment Detector",                             # which detector made this prediction
                     "frame_shape": [0,0],                                       # [0,0], [height , width] in pixels
@@ -37,7 +37,7 @@ class EquipmentDetector():
                 continue
             box_xyxy = boxes.xyxy.cpu().numpy()[0]
 
-            prediction_dict_template = self.get_empty_prediction_dict_template()
+            prediction_dict_template = self.__get_empty_prediction_dict_template()
             prediction_dict_template["frame_shape"] = list(results.orig_shape)
             prediction_dict_template["class_name"] = box_cls_name
             prediction_dict_template["bbox_confidence"] = box_conf
