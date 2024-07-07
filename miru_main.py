@@ -22,7 +22,7 @@ import wrist_cursor
 import cv2
 import pprint
 
-arduino_communicator_object = arduino_communicator.ArduinoCommunicator(baud_rate=9600, serial_timeout=1, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 5, verbose = False, write_delay_s=0.01,arduino_reboot_time=2.5)
+arduino_communicator_object = arduino_communicator.ArduinoCommunicator(baud_rate=9600, serial_timeout=1, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 1, verbose = False, write_delay_s=0.01,arduino_reboot_time=2.5)
 pose_detector_object = pose_detector.PoseDetector(model_name="yolov8n")
 equipment_detector_object = equipment_detector.EquipmentDetector(model_name="net_google_mask_28_06_2024")
 slides_show_object = slides_show.SlideShow(slides_folder="scripts/slides", slide_duration_s=5)
@@ -123,6 +123,10 @@ while True:
     # Draw slide on top of frame
     frame = slides_show_object.draw_slide_on_top_of_frame(frame=frame, slide_frame=slide_frame)
 
+
+    # Show frame    
+    frame = cv2.resize(frame, (PARAM_DISPLAY_SIZE[0], PARAM_DISPLAY_SIZE[1])) # resize the frame to the display size (1920x1080)
+
     # Cursor related UI modifications       
     if wrist_cursor_object.get_mode() == "how_to_use_activated":
 
@@ -142,8 +146,7 @@ while True:
     elif is_turnstile_on or wrist_cursor_object.get_mode() in ["pass_me_holding", "pass_me_activated"]:
         wrist_cursor_object.display_pass_me_holding_percentage(frame, is_arduion_connected=is_arduino_connected, is_turnstile_on=is_turnstile_on)
 
-    # Show frame    
-    frame = cv2.resize(frame, (PARAM_DISPLAY_SIZE[0], PARAM_DISPLAY_SIZE[1])) # resize the frame to the display size (1920x1080)
+
     cv2.imshow("Miru", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):   # Break loop if 'q' is pressed
         break
