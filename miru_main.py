@@ -89,7 +89,7 @@ while True:
     face_manager_with_memory_object.draw_faces_on_frame(frame, coordinate_transform_coefficients=coordinate_transform_coefficients)
 
     # Send signals to arduino
-    if face_manager_with_memory_object.should_turn_on_turnstiles():
+    if face_manager_with_memory_object.should_turn_on_turnstiles() or wrist_cursor_object.get_mode() == "pass_me_activated":
         arduino_communicator_object.send_activate_turnstile_signal()
     else:
         arduino_communicator_object.send_ping_to_arduino()
