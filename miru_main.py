@@ -1,6 +1,7 @@
 import sys
 import os
 import copy 
+import time
 
 # Determine the absolute path to the directory containing your scripts folder
 project_directory = os.path.dirname(os.path.abspath(__file__))
@@ -33,7 +34,6 @@ wrist_cursor_object = wrist_cursor.WristCursor()
 PARAM_DISPLAY_SIZE = (1920, 1080) #NOTE: DO NOT CHANGE -> fixed miru display size, do not change. Also the camera data is fetched in this size
 PARAM_IMAGE_PROCESS_SIZE = (640, 360) #NOTE: DO NOT CHANGE 
 cap = cv2.VideoCapture(0)
-
 cap.set(3, PARAM_DISPLAY_SIZE[0])
 cap.set(4, PARAM_DISPLAY_SIZE[1])
 
@@ -42,12 +42,16 @@ cv2.namedWindow('Miru', cv2.WINDOW_NORMAL)
 cv2.setWindowProperty('Miru', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 while True:
-    mode = "normal"
-
     # Read frame from webcam
     ret, frame = cap.read()
     if not ret:
-        print("Error reading frame")
+        print("Error reading frame, attempting to reconnect...")
+        #TODO: show camera is not found screen
+        cap.release()
+        time.sleep(1)  # Wait a moment before retrying
+        cap = cv2.VideoCapture(0)
+        cap.set(3, PARAM_DISPLAY_SIZE[0])
+        cap.set(4, PARAM_DISPLAY_SIZE[1])
         continue
     
     frame = cv2.flip(frame, 1) # mirror the frame so that when someone moves their right hand, the cursor moves to the right
@@ -86,7 +90,7 @@ while True:
     if slides_show_object.should_change_slide():
         slides_show_object.update_current_slide()
 
-    if False and face_manager_with_memory_object.get_number_of_active_faces() == 0:
+    if face_manager_with_memory_object.get_number_of_active_faces() == 0:
         slides_show_object.increase_opacity()
     else:
         slides_show_object.decrease_opacity()
@@ -96,10 +100,24 @@ while True:
     # Draw slide on top of frame
     frame = slides_show_object.draw_slide_on_top_of_frame(frame=frame, slide_frame=slide_frame)
 
-    # Cursor related UI modifications
-       
+    # Cursor related UI modifications       
     if wrist_cursor_object.get_mode() == "how_to_use_activated":
-        picasso.draw_image_on_frame(frame=frame, image_name="miru_how_to_use_page", x=0, y=0, width=frame.shape[1], height=frame.shape[0], maintain_aspect_ratio = False)
+        PARAM_CLEARANCE_X = 10
+        PARAM_CLEARANCE_Y = 10
+        PARAM_RESIZING_FACTOR = 4
+        # Resize the UI
+        ui_shrinked = cv2.resize(copy.deepcopy(frame), (frame.shape[1] // PARAM_RESIZING_FACTOR, frame.shape[0] // PARAM_RESIZING_FACTOR))
+
+        # Calculate position for bottom right corner with clearance
+        x_position = frame.shape[1] - ui_shrinked.shape[1] - PARAM_CLEARANCE_X
+        y_position = frame.shape[0] - ui_shrinked.shape[0] - PARAM_CLEARANCE_Y
+
+        # Draw the UI on the frame at the calculated position
+        picasso.draw_image_on_frame(frame=frame, image_name="miru_how_to_use_page", x=0, y=0, width=frame.shape[1], height=frame.shape[0], maintain_aspect_ratio=False)
+        
+        # Place the shrunk UI at the bottom right with clearance
+        frame[y_position:y_position + ui_shrinked.shape[0], x_position:x_position + ui_shrinked.shape[1]] = ui_shrinked
+
     elif wrist_cursor_object.get_mode() in ["pass_me_holding", "pass_me_activated"]:
         wrist_cursor_object.display_pass_me_holding_percentage(frame)
 
