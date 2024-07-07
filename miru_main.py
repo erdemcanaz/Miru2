@@ -33,6 +33,9 @@ wrist_cursor_object = wrist_cursor.WristCursor()
 # Open webcam
 PARAM_DISPLAY_SIZE = (1920, 1080) #NOTE: DO NOT CHANGE -> fixed miru display size, do not change. Also the camera data is fetched in this size
 PARAM_IMAGE_PROCESS_SIZE = (640, 360) #NOTE: DO NOT CHANGE 
+
+
+last_time_camera_connection_trial = time.time()
 cap = cv2.VideoCapture(0)
 cap.set(3, PARAM_DISPLAY_SIZE[0])
 cap.set(4, PARAM_DISPLAY_SIZE[1])
@@ -41,17 +44,22 @@ cap.set(4, PARAM_DISPLAY_SIZE[1])
 cv2.namedWindow('Miru', cv2.WINDOW_NORMAL)
 cv2.setWindowProperty('Miru', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
-while True:
+while True:      
     # Read frame from webcam
     ret, frame = cap.read()
     if not ret:
-        print("Error reading frame, attempting to reconnect...")
-        #TODO: show camera is not found screen
-        cap.release()
-        time.sleep(1)  # Wait a moment before retrying
-        cap = cv2.VideoCapture(0)
-        cap.set(3, PARAM_DISPLAY_SIZE[0])
-        cap.set(4, PARAM_DISPLAY_SIZE[1])
+        frame = picasso.get_image_as_frame(image_name="camera_connection_error_page", width=PARAM_DISPLAY_SIZE[0], height=PARAM_DISPLAY_SIZE[1], maintain_aspect_ratio=False)
+        cv2.imshow("Miru", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):   # Break loop if 'q' is pressed
+            break
+
+        if time.time() - last_time_camera_connection_trial > 1:
+            last_time_camera_connection_trial = time.time()
+            cap.release()
+            cap = cv2.VideoCapture(0)
+            cap.set(3, PARAM_DISPLAY_SIZE[0])
+            cap.set(4, PARAM_DISPLAY_SIZE[1])
+
         continue
     
     frame = cv2.flip(frame, 1) # mirror the frame so that when someone moves their right hand, the cursor moves to the right
@@ -104,7 +112,7 @@ while True:
     if wrist_cursor_object.get_mode() == "how_to_use_activated":
         PARAM_CLEARANCE_X = 10
         PARAM_CLEARANCE_Y = 10
-        PARAM_RESIZING_FACTOR = 4
+        PARAM_RESIZING_FACTOR = 5
         # Resize the UI
         ui_shrinked = cv2.resize(copy.deepcopy(frame), (frame.shape[1] // PARAM_RESIZING_FACTOR, frame.shape[0] // PARAM_RESIZING_FACTOR))
 

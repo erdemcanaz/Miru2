@@ -36,7 +36,24 @@ IMAGE_PATHS = {
     "beni_gecir_unclicked": "src/images/icons/beni_gecir_unclicked.png",
 
     "miru_how_to_use_page": "src/images/popups/miru_how_to_use_page.png",
+    "camera_connection_error_page":"src/images/popups/camera_connection_error_page.png",
 }
+
+
+def get_image_as_frame(image_name:str=None, width:int=100, height:int=100, maintain_aspect_ratio:bool = True):
+    global IMAGE_PATHS
+    image_path = IMAGE_PATHS[image_name]
+    image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+
+    # Resize image
+    if maintain_aspect_ratio:
+        im_height, im_width = image.shape[0], image.shape[1]
+        scale = min((width / im_width), (height / im_height))
+        image = cv2.resize(image, (int(im_width * scale), int(im_height * scale)), interpolation=cv2.INTER_AREA)
+    else:
+        image = cv2.resize(image, (width, height),interpolation=cv2.INTER_AREA)
+
+    return image
 
 
 def draw_image_on_frame(frame:np.ndarray=None, image_name:str=None, x:int=None, y:int=None, width:int=100, height:int=100, maintain_aspect_ratio:bool = True):
