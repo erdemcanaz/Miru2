@@ -37,6 +37,16 @@ IMAGE_PATHS = {
 
     "miru_how_to_use_page": "src/images/popups/miru_how_to_use_page.png",
     "camera_connection_error_page":"src/images/popups/camera_connection_error_page.png",
+
+    "turnstile_green": "src/images/icons/turnstile_green.png",
+    "turnstile_red": "src/images/icons/turnstile_red.png",
+    "arduino_online": "src/images/icons/arduino_online_icon_nobg.png",
+    "arduino_offline": "src/images/icons/arduino_offline_icon_nobg.png",
+
+    "turnstile_blue": "src/images/icons/turnstile_blue.png",
+    "tursntile_grey": "src/images/icons/turnstile_grey.png",
+    "arduino_connection_blue": "src/images/icons/arduino_connection_blue.png",
+    "arduino_connection_grey": "src/images/icons/arduino_connection_grey.png",
 }
 
 

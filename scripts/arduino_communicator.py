@@ -14,50 +14,20 @@ class ArduinoCommunicator:
         "arduino_offline_no_bg": "src/images/icons/arduino_offline_icon_nobg.png", # This icon is used for displaying on the screen
     }
 
-    def __init__(self, baud_rate=9600, serial_timeout=2, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 30, verbose = False, write_delay_s = 0.05):
+    def __init__(self, baud_rate=9600, serial_timeout=2, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 30, verbose = False, write_delay_s = 0.05, arduino_reboot_time:float = 2):
         self.SERIAL_BAUDRATE = baud_rate
-        self.SERIAL_TIMEOUT = serial_timeout
+        self.SERIAL_TIMEOUT = max(serial_timeout, arduino_reboot_time + 1) # Timeout should be greater than arduino reboot time
         self.arduino_port = None
         self.serial_connection = None
         self.EXPECTED_RESPONSE = expected_response # When sending 'i' to Arduino, it should reply with this string
         self.WRITE_DELAY_S = write_delay_s
+        self.ARDUINO_REBOOT_TIME = arduino_reboot_time # Time to wait after trying to connect to Arduino so that Arduino (UNO & Nano) reboots itself when the serial connection is established
 
         self.CONNECTION_TEST_PREIOD_S = connection_test_period_s  # Connection timeout in seconds
         self.last_connection_check_time = 0  # Time of last connection check       
 
         self.VERBOSE = verbose 
         
-    def draw_arduino_connection_status_icon(self, frame: np.ndarray):
-        if self.get_connection_status():
-            icon = cv2.imread(self.ICON_PATHS["arduino_online_no_bg"], cv2.IMREAD_UNCHANGED)
-        else:
-            icon = cv2.imread(self.ICON_PATHS["arduino_offline_no_bg"], cv2.IMREAD_UNCHANGED)
-        
-        # Check if the icon has an alpha channel
-        if icon.shape[2] == 4:
-            # Split the icon into its channels
-            b, g, r, a = cv2.split(icon)
-            
-            # Create an alpha mask
-            alpha = a / 255.0
-            
-            # Get the region of interest (ROI) on the frame
-            y1, y2 = 10, 10 + icon.shape[0]
-            x1, x2 = 10, 10 + icon.shape[1]
-            
-            # Extract the region of interest from the frame
-            roi = frame[y1:y2, x1:x2]
-
-            # Blend the icon with the frame using the alpha mask
-            for c in range(3):
-                roi[:, :, c] = (roi[:, :, c] * (1 - alpha) + icon[:, :, c] * alpha).astype(np.uint8)
-
-            # Put the blended result back into the frame
-            frame[y1:y2, x1:x2] = roi
-        else:
-            # If the icon does not have an alpha channel, just paste it
-            frame[10:icon.shape[0]+10, 10:icon.shape[1]+10] = icon
-
     def is_connection_test_time_elapsed(self)->bool:
         time_elapsed = time.time() - self.last_connection_check_time
         if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))} -> Time elapsed since last connection check: {time_elapsed:.2f} seconds")
@@ -71,6 +41,7 @@ class ArduinoCommunicator:
             try:
                 self.serial_connection.write(b'i')
                 response = self.serial_connection.readline().decode('utf-8', errors='ignore').strip()
+                
                 if(response == self.EXPECTED_RESPONSE):
                     if(self.VERBOSE):print(f"{time.strftime('%H:%M:%S', time.gmtime(time.time()))} -> Expected reply is received, Arduino is online")
                     return True
@@ -101,7 +72,7 @@ class ArduinoCommunicator:
         for port in ports:
             try:
                 ser = serial.Serial(port.device, self.SERIAL_BAUDRATE, timeout=self.SERIAL_TIMEOUT)
-                time.sleep(2)  # Wait for Arduino to reset
+                time.sleep(self.ARDUINO_REBOOT_TIME)  # Wait for Arduino to reset
                 ser.write(b'i') # After receiving this character, arduino returns the 'expected_response'
                 response = ser.readline().decode('utf-8', errors='ignore').strip()
                 if response == self.EXPECTED_RESPONSE:

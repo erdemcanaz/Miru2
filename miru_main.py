@@ -22,27 +22,29 @@ import wrist_cursor
 import cv2
 import pprint
 
-arduino_communicator_object = arduino_communicator.ArduinoCommunicator(baud_rate=9600, serial_timeout=2, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 10, verbose = False, write_delay_s=0.01)
+arduino_communicator_object = arduino_communicator.ArduinoCommunicator(baud_rate=9600, serial_timeout=1, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 5, verbose = False, write_delay_s=0.01,arduino_reboot_time=2.5)
 pose_detector_object = pose_detector.PoseDetector(model_name="yolov8n")
 equipment_detector_object = equipment_detector.EquipmentDetector(model_name="net_google_mask_28_06_2024")
 slides_show_object = slides_show.SlideShow(slides_folder="scripts/slides", slide_duration_s=5)
 face_manager_with_memory_object = face_tracker_memory.FaceTrackerManager()
 wrist_cursor_object = wrist_cursor.WristCursor()
 
+# Create a window named 'Object Detection' and set the window to fullscreen if desired
+cv2.namedWindow('Miru', cv2.WINDOW_NORMAL)
+cv2.setWindowProperty('Miru', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 # Open webcam
 PARAM_DISPLAY_SIZE = (1920, 1080) #NOTE: DO NOT CHANGE -> fixed miru display size, do not change. Also the camera data is fetched in this size
 PARAM_IMAGE_PROCESS_SIZE = (640, 360) #NOTE: DO NOT CHANGE 
-
 
 last_time_camera_connection_trial = time.time()
 cap = cv2.VideoCapture(0)
 cap.set(3, PARAM_DISPLAY_SIZE[0])
 cap.set(4, PARAM_DISPLAY_SIZE[1])
 
-# Create a window named 'Object Detection' and set the window to fullscreen if desired
-cv2.namedWindow('Miru', cv2.WINDOW_NORMAL)
-cv2.setWindowProperty('Miru', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+#keep track of turnstile status
+PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
+last_time_turnstile_activated = 0
 
 while True:      
     # Read frame from webcam
@@ -66,7 +68,16 @@ while True:
 
     #Arduino communication test
     arduino_communicator_object.ensure_connection()
-    arduino_communicator_object.draw_arduino_connection_status_icon(frame)
+    if arduino_communicator_object.get_connection_status():
+        picasso.draw_image_on_frame(frame=frame, image_name="arduino_connection_blue", x=10, y=10, width=60, height=60, maintain_aspect_ratio=False)
+    else:
+        picasso.draw_image_on_frame(frame=frame, image_name="arduino_connection_grey", x=10, y=10, width=60, height=60, maintain_aspect_ratio=False)
+
+    # draw turnstile status icon
+    if time.time() - last_time_turnstile_activated < PARAM_KEEP_TURNED_ON_TIME:
+        picasso.draw_image_on_frame(frame=frame, image_name="turnstile_blue", x=80, y=10, width=60, height=60, maintain_aspect_ratio=False)
+    else:
+        picasso.draw_image_on_frame(frame=frame, image_name="tursntile_grey", x=80, y=10, width=60, height=60, maintain_aspect_ratio=False)
 
     coordinate_transform_coefficients = (frame.shape[1] / PARAM_IMAGE_PROCESS_SIZE[0], frame.shape[0] / PARAM_IMAGE_PROCESS_SIZE[1]) # to transform the coordinates of the face bounding boxes to the original frame size from the resized frame size
     resized_frame = cv2.resize(copy.deepcopy(frame), (PARAM_IMAGE_PROCESS_SIZE[0], PARAM_IMAGE_PROCESS_SIZE[1]))
@@ -91,6 +102,7 @@ while True:
     # Send signals to arduino
     if face_manager_with_memory_object.should_turn_on_turnstiles() or wrist_cursor_object.get_mode() == "pass_me_activated":
         arduino_communicator_object.send_activate_turnstile_signal()
+        last_time_turnstile_activated = time.time()
     else:
         arduino_communicator_object.send_ping_to_arduino()
 
@@ -110,17 +122,15 @@ while True:
 
     # Cursor related UI modifications       
     if wrist_cursor_object.get_mode() == "how_to_use_activated":
+
+        # Shrink UI
         PARAM_CLEARANCE_X = 10
         PARAM_CLEARANCE_Y = 10
         PARAM_RESIZING_FACTOR = 5
-        # Resize the UI
         ui_shrinked = cv2.resize(copy.deepcopy(frame), (frame.shape[1] // PARAM_RESIZING_FACTOR, frame.shape[0] // PARAM_RESIZING_FACTOR))
-
-        # Calculate position for bottom right corner with clearance
         x_position = frame.shape[1] - ui_shrinked.shape[1] - PARAM_CLEARANCE_X
         y_position = frame.shape[0] - ui_shrinked.shape[0] - PARAM_CLEARANCE_Y
 
-        # Draw the UI on the frame at the calculated position
         picasso.draw_image_on_frame(frame=frame, image_name="miru_how_to_use_page", x=0, y=0, width=frame.shape[1], height=frame.shape[0], maintain_aspect_ratio=False)
         
         # Place the shrunk UI at the bottom right with clearance

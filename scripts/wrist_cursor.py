@@ -7,11 +7,11 @@ import cv2
 class WristCursor:
 
     def __init__(self):
-        self.PARAM_WRIST_UP_FACTOR = 0.05 # cursor should be above the wrist by this factor for better UX
+        self.PARAM_WRIST_UP_FACTOR = 0.00 # cursor should be above the wrist by this factor for better UX
         self.CURSOR_SMOOTHING_FACTOR = 0.4 # smoothing factor for cursor movement
 
         self.WRIST_DETECTION_THRESHOLD = 0.70 # if the confidence of the wrist detection is below this value, it will be ignored
-        self.DETECTION_TIMEOUT_S = 2 # if the wrist is not detected for this amount of time in seconds, the cursor will be hidden
+        self.DETECTION_TIMEOUT_S = 1.25 # if the wrist is not detected for this amount of time in seconds, the cursor will be hidden
         self.WIDTH_NORMALIZED_CURSOR_SIZE = 0.03 # width of the cursor in the normalized coordinates were base is frame width
         self.NORMALIZED_OPAQUE_CURSOR_REGION = [0.8, 0, 1, 0.5]
 
@@ -173,10 +173,10 @@ class WristCursor:
         frame_height, frame_width, _ = frame.shape
 
         # Calculate the dimensions of the rectangle
-        rect_width = int(frame_width * 0.5)
-        rect_height = int(frame_height * 0.1)
+        rect_width = int(frame_width * 0.4)
+        rect_height = int(frame_height * 0.03)
         rect_x = int((frame_width - rect_width) / 2)
-        rect_y = int((frame_height - rect_height) / 3.75)
+        rect_y = int((frame_height - rect_height) //1.05)
 
         # Draw the rectangle on the frame
         cv2.rectangle(frame, (rect_x, rect_y), (rect_x + rect_width, rect_y + rect_height), (0, 0, 255), -1)
@@ -188,10 +188,10 @@ class WristCursor:
         cv2.rectangle(frame, (rect_x, rect_y), (rect_x + fill_width, rect_y + rect_height), (0, 255, 0), -1)
 
         # Add text to display the percentage
-        text = f"{int(percentage * 100)}%" if percentage < 1 else "GECEBILIRSINIZ"
+        text = f"Gecmenize {(1-percentage)*self.HOLDING_THRESHOLDS['pass_me']:.2f}s" if percentage < 1 else "GECEBILIRSINIZ"
         text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
         text_x = int((frame_width - text_size[0]) / 2)
-        text_y = int((frame_height + text_size[1]) / 4)
+        text_y = int(rect_y-10)
         cv2.putText(frame, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
 
