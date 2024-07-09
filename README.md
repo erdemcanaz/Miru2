@@ -8,10 +8,12 @@
 
 ## Build of Materials
 
-* NVIDIA Jetson Orin Nano 8Gb [Developer kit]
-* CS2230 M.2 NVMe SSD 500GB
-* Logitech BRIO 4k Ultra HD Webcam
-* Arduino Uno & 5V controlled relay.
+* **NVIDIA Jetson Orin Nano 8Gb [Developer kit]**
+* **CS2230 M.2 NVMe SSD 500GB**
+* **Logitech BRIO 4k Ultra HD Webcam**
+* **Arduino Uno & 5V controlled relay.**
+* **USB Mouse and Keyboard**
+* *Waveshare Orin Nano/NX Metal Case (Optional)*
 * *HDMI-to-DISPLAY PORT adaptor (Optional)*
 * A display (Optional)
 
@@ -27,9 +29,13 @@ Before reading this part, go over each one of this references by yourself. It wi
 
 [2] [Install Jetson Software with SDK Manager](https://docs.nvidia.com/sdk-manager/install-with-sdkm-jetson/index.html)
 
+[3] [Use These! Jetson Docker Containers Tutorial](https://youtu.be/HlH3QkS1F5Y)
+
+[4] [JETSON ORIN CASE A-Assembly Tutorial, Aluminum Alloy Case For Jetson Orin, With Camera Holder](https://youtu.be/-imhL0oETSQ)
+
 ### 1) Install SDK manager
 
-To get started, ensure that you have a main-computer that is running Ubuntu 20.04 (Not on a virtual machine). This is crucial because JetPack 5.1.3 has been tested to work optimally with Ubuntu 20.04, and this version also supports Python 3.8, which Miru2 is developed on. The Jetson Nano will be flashed with the main computer's Ubuntu version, making it essential to use Ubuntu 20.04. Next, [install the NVIDIA SDK Manager](https://developer.nvidia.com/sdk-manager) on the main-computer. This tool will be used to download and install the required JetPack version(s) onto the Jetson Orin Nano. To use the SDK Manager, you need to log in with your developer account. If you don't have one, [creating a developer account is straightforward.](https://developer.nvidia.com/login)
+To get started, ensure that you have a main-computer that is running Ubuntu 20.04 (Not on a virtual machine). This is crucial because JetPack 5.1.3 has been tested to work optimally with Ubuntu 20.04, and this version of ubuntu also supports Python 3.8, which Miru2 is developed on. The Jetson Nano will be flashed with the main computer's Ubuntu version, making it essential to use Ubuntu 20.04. Next, [install the NVIDIA SDK Manager](https://developer.nvidia.com/sdk-manager) on the main-computer. This tool will be used to download and install the required JetPack version(s) onto the Jetson Orin Nano. To use the SDK Manager, you need to log in with your developer account. If you don't have one, [creating a developer account is straightforward.](https://developer.nvidia.com/login)
 
 **[TODO: IMAGE main computer-jetson orin nano]**
 
@@ -37,11 +43,15 @@ To get started, ensure that you have a main-computer that is running Ubuntu 20.0
 
 ### 2) Mount NVMe
 
+Please refer to [reference [1].](https://youtu.be/FX2exKW_20E)
+
 NVMe (Non-Volatile Memory) can be considered as a solid state memory unit which is the replacement technology for older hard-drives. Simply mount NVMe to the jetson-device.
 
 ### 3) Start Jetson in Force Recovery Mode
 
-On the side of the device, there are ***button headers*** that should not be confused with the ***40-pin expansion headers***. One of these button headers is called the **Force Recovery pin.** To boot the Jetson into force recovery mode and allow it to be flashed by the SDK Manager, you need to connect the Force Recovery pin to the ground. The steps to follow are as simple as:
+Please refer to [reference [1].](https://youtu.be/FX2exKW_20E)
+
+On the side of the jetson-device, there are ***button headers*** that should not be confused with the ***40-pin expansion headers***. One of these button headers is called the **Force Recovery pin.** To boot the Jetson into force recovery mode and allow it to be flashed by the SDK Manager, you need to connect the Force Recovery pin to the ground. The steps to follow are as simple as:
 
 1. **Ensure that the jetson-device is powered off and unplugged.**
 2. Disconnect all unnecessary cables and USB adapters from the device.
@@ -57,7 +67,7 @@ On the side of the device, there are ***button headers*** that should not be con
 
 ### 4) Flashing with SDK manager
 
-*For official documentation, please refer to [reference [2].](https://docs.nvidia.com/sdk-manager/install-with-sdkm-jetson/index.html)*
+*For official documentation, please refer to [reference [1]](https://youtu.be/FX2exKW_20E) and [reference [2].](https://docs.nvidia.com/sdk-manager/install-with-sdkm-jetson/index.html)*
 
 Please note that these configurations might change slightly with updates to the SDK Manager. However, similar options should be available regardless of any changes. Flashing consists of four steps listed in the SDK Manager. The configuration for each step is as follows:
 
@@ -95,13 +105,49 @@ The SDK manager will ask you to enter your ***sudo password***. After you enter 
 
 This step is just the summary. The flashing process is complete and your Jetson device is now a standalone computer and no longer needs the main computer. You can safely remove the USB cable.
 
-### 5) Jetson-device ubuntu setup
+### 5) Jetson-device first things to do.
 
-->update the device
+#### Display and log-in
 
--> ensure never sleep option is selected
+After successfully completing this step, you can take a deep breath and relax. Your Jetson device is now ready to use!
 
+1. Unplug the power cable.
+2. Connect the Jetson device to the display using either a DisplayPort or an HDMI-to-DisplayPort adapter.
+3. Ensure that a keyboard is connected to the Jetson device.
+4. Plug in the power cable. Jetson device should automatically turn-on (i.e. the green LED should illuminate).
+5. Press the "Enter" key repeatedly until you see the Ubuntu login screen.
+6. Log in to your Jetson device using the password you set during step 3 of the flashing process.
+
+#### Connect to internet
+
+This step is required since we will be installing packages. Additionally, once the internet connection is established, the device will update its date and time using NTP (Network Time Protocol).
+
+#### Get updates
+
+Open terminal and write the following;
+
+```
+sudo apt update
+sudo apt upgrade
+```
+
+#### Turn-off battery-saving
+
+Since Miru2 is designed to operate on a 24/7 basis, change the sleep option to "Never."
+
+**[TODO: explain how this setting is turned to never]**
 
 ### Install Docker Container
 
+
+from ground up
+
+from already built container for miruV2
+
 ### Do Testing to Validate Setup
+
+### Install Docker Container
+
+## How Miru2 works
+
+TODO: explain how code works
