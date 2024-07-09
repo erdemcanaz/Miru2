@@ -6,6 +6,8 @@
 
 ## How to run Miru2 on an already configured Jetson-Orin nano
 
+***TODO: video explaining all the steps in english**
+
 ## Build of Materials
 
 * **NVIDIA Jetson Orin Nano 8Gb [Developer kit].**
@@ -33,7 +35,9 @@ Before reading this part, go over each one of this references by yourself. It wi
 
 [4] [Github- Jetson Containers](https://github.com/dusty-nv/jetson-containers/tree/master)
 
-[5] [JETSON ORIN CASE A-Assembly Tutorial, Aluminum Alloy Case For Jetson Orin, With Camera Holder](https://youtu.be/-imhL0oETSQ)
+[5] [NVIDIA - What is L4T?](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-base)
+
+[] [JETSON ORIN CASE A-Assembly Tutorial, Aluminum Alloy Case For Jetson Orin, With Camera Holder](https://youtu.be/-imhL0oETSQ)
 
 ### 1) Install SDK manager
 
@@ -95,9 +99,9 @@ The SDK manager will ask you to enter your ***sudo password***. After you enter 
 
 1-Choose **Automatic Setup**
 
-2- Already satisfied
+2- Should be already satisfied.
 
-3- Already satisfied
+3- Should be already satisfied.
 
 4- Choose an **username** and **password** for your jetson-device's ubuntu.
 
@@ -126,10 +130,8 @@ This step is required since we will be installing packages. Additionally, once t
 
 #### Get updates
 
-Open terminal and run the following;
-
 ```
-sudo apt-get update && sudo apt-get upgrade
+$ sudo apt-get update && sudo apt-get upgrade
 
 ```
 
@@ -141,33 +143,33 @@ Since Miru2 is designed to operate on a 24/7 basis, change the sleep option to "
 
 ### Install Docker Image
 
-please refer to [reference [3]](https://youtu.be/HlH3QkS1F5Y) and [reference [4].](https://github.com/dusty-nv/jetson-containers/tree/master)
+please refer to [reference [3]](https://youtu.be/HlH3QkS1F5Y) , [reference [4]](https://github.com/dusty-nv/jetson-containers/tree/master) and [reference [5].](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-base)
 
-#### 1-a) Use Miru2-prebuilt image:
+#### 1-a) Use L4T:Miru2 image:
 
 **[TODO: upload Miru2-prebuilt image to docker hub and explaint how to install it.]**
 
-#### 1-b) From ground up:
+#### 1-b) Use L4T:r35.4.1 image:
 
 Step **1-a** should be sufficient. After completing step **1-b**, you will simply end up with the same image as in step **1-a**. This part is explained in case any problems occur during step **1-a.**
 
 ##### Verify docker
 
-Open terminal and run the following to check if docker is working;
+Check if docker is working;
 
 ```
-sudo docker info
+$ sudo docker info
 ```
 
 ##### Change Default Docker Runtime
 
-Open terminal and run the following code to open deamon.json file in gedit (i.e text editor).
+Open deamon.json file in gedit (i.e text editor).
 
 ```
-sudo gedit /etc/docker/daemon.json
+$ sudo gedit /etc/docker/daemon.json
 ```
 
-Change the content of the file with the following json and save.
+Change the content of the file with the following and save.	
 
 ```
 {
@@ -182,13 +184,13 @@ Change the content of the file with the following json and save.
 }
 ```
 
-Restart the docker
+Restart Docker
 
 ```
-sudo systemctl restart docker
+$ sudo systemctl restart docker
 ```
 
-Then check whether changes are applied.
+Then check whether the changes are applied.
 
 ```
 $ sudo docker info | grep 'Default Runtime'
@@ -197,6 +199,82 @@ Default Runtime: nvidia
 
 ##### Download L4T: 35.4.1 Docker image
 
+*"NVIDIA Linux4Tegra (L4T) package provides the bootloader, kernel, necessary firmwares, NVIDIA drivers for various accelerators present on Jetson modules, flashing utilities and a sample filesystem to be used on Jetson systems. The software packages contained in L4T provide the functionality necessary to run Linux on Jetson modules." [5]*
+
+Pull [`dustynv/l4t-pytorch:r35.4.1`](https://hub.docker.com/r/dustynv/l4t-pytorch/tags) image;
+
+```
+$ sudo docker pull dustynv/l4t-pytorch:r35.4.1
+```
+
+The image is about 6GB. Which takes a while to download.
+
+Download L4T: 35.4.1 Docker image
+
+Check image is downloaded;
+
+```
+$ sudo docker image ls
+```
+
+##### Built Miru2 and commit (i.e. save) the final image
+
+*Ensure that webcam and the miru-arduino is connected to the jetson-device.*
+
+Run the [`dustynv/l4t-pytorch:r35.4.1`](https://hub.docker.com/r/dustynv/l4t-pytorch/tags) image;
+
+```
+$ sudo docker run --runtime nvidia --device /dev/video0:/dev/video0 -it --rm --network=host -e DISPLAY -e QT_X11_NO_MITSHM=1 dustynv/l4t-pytorch:r35.4.1
+```
+
+go to home directory
+
+**TODO: add absolute path for the container commands to make it more error prone**
+
+```
+$[CONTAINER] cd home
+```
+
+Clone the Miru2 repository
+
+```
+python3.8 -m pip clone https://github.com/erdemcanaz/Miru2.git
+```
+
+During cloning, you may encounter an EOF error, especially if your network connection is unstable. I have not specifically addressed this issue because one of the trials always succeeded without errors (typically within 5 to 10 attempts). I simply retried until a successful attempt. This error is expected, so if you encounter it, just keep trying until you succeed or you may search for the solution on the web. There are some *[SOLVED]* topics on that. 
+
+Go to miru directory.
+
+```
+$[CONTAINER] cd Miru2
+```
+
+Install Ultralytics without dependencies. This is necessary because cv2 is prebuilt in this container and somehow does not appear in the pip package manager. When installing Ultralytics with dependencies, cv2 (which is also a dependency) gets overwritten, leading to errors.
+
+```
+$[CONTAINER] python3.8 -m pip install ultralytics --no-deps
+```
+
+The Ultralytics dependencies, excluding cv2, are listed in the ***ultralytics_requirements.txt*** file. Simply install each package listed in that file.
+
+```
+$[CONTAINER] python3.8 -m pip install -r ultralytics_requirements.txt
+```
+
+Now we can test the setup if all the functionalities workign fine. There is a test script solely written for this purpose. It starts and checks different functionalities one by one and summarizes the succeded/failed functionalities. to start testing, 
+
+```
+$[CONTAINER] python3.8 testing/test_all.py
+```
+
+| Test Name | Test Purpose | Fails When |
+| --------- | ------------ | ---------- |
+|           |              |            |
+|           |              |            |
+|           |              |            |
+|           |              |            |
+|           |              |            |
+|           |              |            |
 
 ## Details of the Miru2 software implementation
 
