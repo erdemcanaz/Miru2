@@ -8,14 +8,14 @@
 
 ## Build of Materials
 
-* **NVIDIA Jetson Orin Nano 8Gb [Developer kit]**
-* **CS2230 M.2 NVMe SSD 500GB**
-* **Logitech BRIO 4k Ultra HD Webcam**
-* **Arduino Uno & 5V controlled relay.**
-* **USB Mouse and Keyboard**
-* *Waveshare Orin Nano/NX Metal Case (Optional)*
-* *HDMI-to-DISPLAY PORT adaptor (Optional)*
-* A display (Optional)
+* **NVIDIA Jetson Orin Nano 8Gb [Developer kit].**
+* **CS2230 M.2 NVMe SSD 500GB.**
+* **Logitech BRIO 4k Ultra HD Webcam.**
+* **USB Mouse and Keyboard.**
+* **A display**
+* Arduino Uno & 5V controlled relay (Optional - Required for turnstile control feature).
+* *Waveshare Orin Nano/NX Metal Case (Optional).*
+* *HDMI-to-DISPLAY PORT adaptor (Optional).*
 
 ## How to setup Jetson Orin Nano for Miru2
 
@@ -31,7 +31,9 @@ Before reading this part, go over each one of this references by yourself. It wi
 
 [3] [Use These! Jetson Docker Containers Tutorial](https://youtu.be/HlH3QkS1F5Y)
 
-[4] [JETSON ORIN CASE A-Assembly Tutorial, Aluminum Alloy Case For Jetson Orin, With Camera Holder](https://youtu.be/-imhL0oETSQ)
+[4] [Github- Jetson Containers](https://github.com/dusty-nv/jetson-containers/tree/master)
+
+[5] [JETSON ORIN CASE A-Assembly Tutorial, Aluminum Alloy Case For Jetson Orin, With Camera Holder](https://youtu.be/-imhL0oETSQ)
 
 ### 1) Install SDK manager
 
@@ -124,11 +126,11 @@ This step is required since we will be installing packages. Additionally, once t
 
 #### Get updates
 
-Open terminal and write the following;
+Open terminal and run the following;
 
 ```
-sudo apt update
-sudo apt upgrade
+sudo apt-get update && sudo apt-get upgrade
+
 ```
 
 #### Turn-off battery-saving
@@ -137,17 +139,65 @@ Since Miru2 is designed to operate on a 24/7 basis, change the sleep option to "
 
 **[TODO: explain how this setting is turned to never]**
 
-### Install Docker Container
+### Install Docker Image
+
+please refer to [reference [3]](https://youtu.be/HlH3QkS1F5Y) and [reference [4].](https://github.com/dusty-nv/jetson-containers/tree/master)
+
+#### 1-a) Use Miru2-prebuilt image:
+
+**[TODO: upload Miru2-prebuilt image to docker hub and explaint how to install it.]**
+
+#### 1-b) From ground up:
+
+Step **1-a** should be sufficient. After completing step **1-b**, you will simply end up with the same image as in step **1-a**. This part is explained in case any problems occur during step **1-a.**
+
+##### Verify docker
+
+Open terminal and run the following to check if docker is working;
+
+```
+sudo docker info
+```
+
+##### Change Default Docker Runtime
+
+Open terminal and run the following code to open deamon.json file in gedit (i.e text editor).
+
+```
+sudo gedit /etc/docker/daemon.json
+```
+
+Change the content of the file with the following json and save.
+
+```
+{
+    "runtimes": {
+        "nvidia": {
+            "path": "nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    },
+
+    "default-runtime": "nvidia"
+}
+```
+
+Restart the docker
+
+```
+sudo systemctl restart docker
+```
+
+Then check whether changes are applied.
+
+```
+$ sudo docker info | grep 'Default Runtime'
+Default Runtime: nvidia
+```
+
+##### Download L4T: 35.4.1 Docker image
 
 
-from ground up
-
-from already built container for miruV2
-
-### Do Testing to Validate Setup
-
-### Install Docker Container
-
-## How Miru2 works
+## Details of the Miru2 software implementation
 
 TODO: explain how code works
