@@ -4,6 +4,9 @@
 
 ***TODO: project video**
 
+## History of the Project
+
+
 ## How to run Miru2 on an already configured Jetson-Orin nano
 
 ***TODO: video explaining all the steps in english**
