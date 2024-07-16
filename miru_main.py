@@ -44,8 +44,8 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
 
 last_time_camera_connection_trial = time.time()
 cap = cv2.VideoCapture(0)
-cap.set(3, PARAM_DISPLAY_SIZE[0])
-cap.set(4, PARAM_DISPLAY_SIZE[1])
+# cap.set(3, PARAM_DISPLAY_SIZE[0])
+# cap.set(4, PARAM_DISPLAY_SIZE[1])
 
 #keep track of turnstile status
 PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
