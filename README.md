@@ -169,7 +169,7 @@ Open deamon.json file in gedit (i.e text editor).
 $ sudo gedit /etc/docker/daemon.json
 ```
 
-Change the content of the file with the following and save.	
+Change the content of the file with the following and save.
 
 ```
 {
@@ -241,7 +241,7 @@ Clone the Miru2 repository
 python3.8 -m pip clone https://github.com/erdemcanaz/Miru2.git
 ```
 
-During cloning, you may encounter an EOF error, especially if your network connection is unstable. I have not specifically addressed this issue because one of the trials always succeeded without errors (typically within 5 to 10 attempts). I simply retried until a successful attempt. This error is expected, so if you encounter it, just keep trying until you succeed or you may search for the solution on the web. There are some *[SOLVED]* topics on that. 
+During cloning, you may encounter an EOF error, especially if your network connection is unstable. I have not specifically addressed this issue because one of the trials always succeeded without errors (typically within 5 to 10 attempts). I simply retried until a successful attempt. This error is expected, so if you encounter it, just keep trying until you succeed or you may search for the solution on the web. There are some *[SOLVED]* topics on that.
 
 Go to miru directory.
 
@@ -261,20 +261,20 @@ The Ultralytics dependencies, excluding cv2, are listed in the ***ultralytics_re
 $[CONTAINER] python3.8 -m pip install -r ultralytics_requirements.txt
 ```
 
-Now we can test the setup if all the functionalities workign fine. There is a test script solely written for this purpose. It starts and checks different functionalities one by one and summarizes the succeded/failed functionalities. to start testing, 
+Now we can test the setup if all the functionalities workign fine. There is a test script solely written for this purpose. It starts and checks different functionalities one by one and summarizes the succeded/failed functionalities. To start testing,
 
 ```
 $[CONTAINER] python3.8 testing/test_all.py
 ```
 
-| Test Name | Test Purpose | Fails When |
-| --------- | ------------ | ---------- |
-|           |              |            |
-|           |              |            |
-|           |              |            |
-|           |              |            |
-|           |              |            |
-|           |              |            |
+| Test Name               | Test Purpose                                                                                                                                                                                                                                                                                                                          | Fails When                               |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Python Version          | To verify that the Python script is running version 3.8, as Miru has been tested exclusively with this version.To test whether the python version script is running is 3.8 since Miru is tested only on that version                                                                                                                  | If python version is not 3.8             |
+| USB-PORT Test (Serial)  | To verify if the script is authorized to perform USB port-related tasks, it checks the number of available ports detected by the script. By default, this test assumes that an Arduino is connected to the Jetson device, so at least one port should be listed.                                                                      | If number of ports available is zero     |
+| Show CV2 Frame          | To verify if the script can display an image as a CV2 frame, it ensures that the Docker container is run with the appropriate tags to interact with the display. This test also unintentionally checks the installation of CV2.**Please ensure that the image is displayed. The script will only fail if an exception occurs.** | If any exception occured during the test |
+| Webcam                  | To verify if the script can fetch data from the webcam and display it as a CV2 frame, this test assumes a webcam is connected to the Jetson device by default.**Please ensure that the video stream is displayed. The script will only fail if an exception occurs.**                                                           | If any exception occured during the test |
+| CUDA availability       | To verify if PyTorch is installed and CUDA is available for PyTorch.                                                                                                                                                                                                                                                                  | If CUDA is not available for pytorch     |
+| Ultralytics YOLOv8 Pose | To verify if Ultralytics is installed and capable of detecting objects in a test image using the yolo8n-pose.pt model. The detection result should be displayed on the screen, highlighting the person and their joints in the test image.                                                                                            | If any exception occured during the test |
 
 ## Details of the Miru2 software implementation
 
