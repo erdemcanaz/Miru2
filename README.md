@@ -143,7 +143,7 @@ Since Miru2 is designed to operate on a 24/7 basis, change the sleep option to "
 
 ### Install Docker Image
 
-please refer to [reference [3]](https://youtu.be/HlH3QkS1F5Y) , [reference [4]](https://github.com/dusty-nv/jetson-containers/tree/master) and [reference [5].](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-base)
+Please refer to [reference [3]](https://youtu.be/HlH3QkS1F5Y) , [reference [4]](https://github.com/dusty-nv/jetson-containers/tree/master) and [reference [5].](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-base)
 
 #### 1-a) Use L4T:Miru2 image:
 
@@ -208,8 +208,6 @@ $ sudo docker pull dustynv/l4t-pytorch:r35.4.1
 ```
 
 The image is about 6GB. Which takes a while to download.
-
-Download L4T: 35.4.1 Docker image
 
 Check image is downloaded;
 
