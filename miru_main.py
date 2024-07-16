@@ -60,15 +60,16 @@ while True:
         if cv2.waitKey(1) & 0xFF == ord('q'):   # Break loop if 'q' is pressed
             break
 
-        # if time.time() - last_time_camera_connection_trial > 5:
-        #     last_time_camera_connection_trial = time.time()
-        #     cap.release()
-        #     cap = cv2.VideoCapture(0)
-        #     cap.set(3, PARAM_DISPLAY_SIZE[0])
-        #     cap.set(4, PARAM_DISPLAY_SIZE[1])
+        if time.time() - last_time_camera_connection_trial > 5:
+            last_time_camera_connection_trial = time.time()
+            cap.release()
+            cap = cv2.VideoCapture(0)
 
         continue
     
+    if frame.shape[1] != PARAM_DISPLAY_SIZE[0] or frame.shape[0] != PARAM_DISPLAY_SIZE[1]:
+        frame = cv2.resize(frame, (PARAM_DISPLAY_SIZE[0], PARAM_DISPLAY_SIZE[1]))
+        
     #apply digital zoom to the frame
     if PARAM_ZOOM_FACTOR < 1:
         zoomed_region_top_left = (int(PARAM_ZOOM_TOPLEFT_NORMALIZED[0] * frame.shape[1]), int(PARAM_ZOOM_TOPLEFT_NORMALIZED[1] * frame.shape[0]))
