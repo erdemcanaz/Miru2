@@ -60,12 +60,12 @@ while True:
         if cv2.waitKey(1) & 0xFF == ord('q'):   # Break loop if 'q' is pressed
             break
 
-        if time.time() - last_time_camera_connection_trial > 5:
-            last_time_camera_connection_trial = time.time()
-            cap.release()
-            cap = cv2.VideoCapture(0)
-            cap.set(3, PARAM_DISPLAY_SIZE[0])
-            cap.set(4, PARAM_DISPLAY_SIZE[1])
+        # if time.time() - last_time_camera_connection_trial > 5:
+        #     last_time_camera_connection_trial = time.time()
+        #     cap.release()
+        #     cap = cv2.VideoCapture(0)
+        #     cap.set(3, PARAM_DISPLAY_SIZE[0])
+        #     cap.set(4, PARAM_DISPLAY_SIZE[1])
 
         continue
     
