@@ -6,9 +6,9 @@ import uuid
 import copy
 import time
 
-PARAM_SAVE_LOW_CONFIDENCES_AUTOMATICALLY = True
+PARAM_IS_SAVE_LOW_CONFIDENCES_AUTOMATICALLY = True
 PARAM_AUTO_SAVE_LOW_CONFIDENCE_THRESHOLD = 0.8
-PARAM_AUTO_SAVE_COOLDOWN = 0.5
+PARAM_AUTO_SAVE_COOLDOWN = 0.33
 PARAM_SHOW_RED_CONFIDENCE_THRESHOLD = 0.8
 PARAM_MAX_NUMBER_OF_FRAMES_SAVED = 50
 
@@ -58,16 +58,20 @@ while True:
         break
 
     min_bbox_confidence = detect_and_draw(frame)
-    cv2.putText(frame, f"{saved_count}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+    cv2.putText(frame, f"#Frame: {saved_count}, Auto Save: {PARAM_IS_SAVE_LOW_CONFIDENCES_AUTOMATICALLY}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
     
     cv2.imshow('YOLOv8 Detection', frame)
 
     # Break the loop on 'q' key press
     key = cv2.waitKey(1) & 0xFF
 
-    is_auto_save = PARAM_SAVE_LOW_CONFIDENCES_AUTOMATICALLY and min_bbox_confidence < PARAM_AUTO_SAVE_LOW_CONFIDENCE_THRESHOLD and time.time()-last_time_autosave > PARAM_AUTO_SAVE_COOLDOWN
+    is_auto_save = PARAM_IS_SAVE_LOW_CONFIDENCES_AUTOMATICALLY and min_bbox_confidence < PARAM_AUTO_SAVE_LOW_CONFIDENCE_THRESHOLD and time.time()-last_time_autosave > PARAM_AUTO_SAVE_COOLDOWN
     if key == ord('q'):
         break
+    elif key == ord('m'):
+        PARAM_IS_SAVE_LOW_CONFIDENCES_AUTOMATICALLY = not PARAM_IS_SAVE_LOW_CONFIDENCES_AUTOMATICALLY 
+        print(f"Auto-save preference: {PARAM_IS_SAVE_LOW_CONFIDENCES_AUTOMATICALLY}")
+
     elif key == ord('s') or is_auto_save:
         if is_auto_save:
             last_time_autosave = time.time()
@@ -90,7 +94,7 @@ while True:
         # Save the current frame to a desired folder
         cv2.imwrite(f"{folder_path}/{image_name}.png", frame_untoched)
 
-    if saved_count > PARAM_MAX_NUMBER_OF_FRAMES_SAVED:
+    if saved_count >= PARAM_MAX_NUMBER_OF_FRAMES_SAVED:
         print("Reached the maximum number of saved frames.")
         break
 
