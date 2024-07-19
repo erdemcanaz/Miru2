@@ -2,7 +2,7 @@
 print("\n================= TESTS TO PERFORM =================")
 PARAM_DELAY_BETWEEN_TESTS = 1 # seconds
 PARAM_DISPLAY_SIZE = (1920, 1080) # Fetching size of the webcam feed. Dependent on the webcam quality, resultant frame may be less than this size
-PARAM_SHOW_UI_DURATION_INTEGER = 3 # How many seconds the cv2 frame, webcam feed, etc. should be displayed. Should be an integer
+PARAM_SHOW_UI_DURATION_INTEGER = 5 # How many seconds the cv2 frame, webcam feed, etc. should be displayed. Should be an integer
 
 PARAM_DO_PYTHON_VERSION_TEST = True
 PARAM_DO_SERIAL_LIBRARY_TEST = True 
@@ -123,9 +123,6 @@ if PARAM_DO_WEBCAM_TEST:
         import cv2
 
         cap = cv2.VideoCapture(0)
-        cap.set(3, PARAM_DISPLAY_SIZE[0])
-        cap.set(4, PARAM_DISPLAY_SIZE[1])
-
         start_time = time.time()
         while True:
             ret, frame = cap.read()
