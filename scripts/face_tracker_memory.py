@@ -10,8 +10,8 @@ class Face:
         self.AGE_LIMIT = age_limit
         self.SAMPLE_SIZE = sample_size
         self.EQUIPMENT_CONFIDENCE_THRESHOLDS = {
-            "hair_net":[0.25,0.50],
-            "beard_net":[0.25,0.50],
+            "hair_net":[0.10,0.35],
+            "beard_net":[0.10,0.35],
             "safety_goggles":[0.10,0.35],
             "blue_surgical_mask":[0.25,0.50],
             "white_surgical_mask":[0.25,0.50],
