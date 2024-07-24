@@ -8,7 +8,7 @@ import time
 
 PARAM_IS_SAVE_LOW_CONFIDENCES_AUTOMATICALLY = False
 PARAM_AUTO_SAVE_LOW_CONFIDENCE_THRESHOLD = 0.8
-PARAM_AUTO_SAVE_COOLDOWN = 0.33
+PARAM_AUTO_SAVE_COOLDOWN = 0.75
 PARAM_SHOW_RED_CONFIDENCE_THRESHOLD = 0.8
 PARAM_MAX_NUMBER_OF_FRAMES_SAVED = 5000
 
@@ -36,9 +36,8 @@ def detect_and_draw(frame)->float:
         return min_bbox_confidence
 
 cap = cv2.VideoCapture(0)
-if not cap.isOpened():
-    print("Error: Could not open webcam.")
-    exit()
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
 # Load the YOLOv8 model
 folder_path = "C:\\Users\\Levovo20x\\Documents\\GitHub\\Miru2\\training\\local_saved_frames"
@@ -51,6 +50,7 @@ last_time_autosave = time.time()
 while True:
     ret, frame = cap.read()
 
+    print(f"Frame shape: {frame.shape}")
     frame_untoched = copy.deepcopy(frame)
 
     if not ret:

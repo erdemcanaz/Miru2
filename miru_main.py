@@ -34,8 +34,8 @@ cv2.namedWindow('Miru', cv2.WINDOW_NORMAL)
 cv2.setWindowProperty('Miru', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 # Open webcam
-PARAM_ZOOM_FACTOR = 0.75 # length of ROI edge in terms of the frame edge length 
-PARAM_ZOOM_TOPLEFT_NORMALIZED = (0.125, 0.125)
+PARAM_ZOOM_FACTOR = 0.50 # length of ROI edge in terms of the frame edge length 
+PARAM_ZOOM_TOPLEFT_NORMALIZED = (0.25, 0.25)
 PARAM_DISPLAY_SIZE = (1920, 1080) #NOTE: DO NOT CHANGE -> fixed miru display size, do not change. Also the camera data is fetched in this size
 PARAM_IMAGE_PROCESS_SIZE = (640, 360) #NOTE: DO NOT CHANGE 
 
@@ -43,8 +43,8 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
     raise ValueError("Zoomed region is out of frame boundaries")
 
 cap = cv2.VideoCapture(0)
-# cap.set(3, PARAM_DISPLAY_SIZE[0])
-# cap.set(4, PARAM_DISPLAY_SIZE[1])
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
 #keep track of turnstile status
 PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
