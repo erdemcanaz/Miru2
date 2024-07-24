@@ -17,7 +17,7 @@ class WristCursor:
 
         self.HOLDING_THRESHOLDS = {
             "how_to_use": 1.5,
-            "pass_me": 10
+            "pass_me": 5
         }
 
         self.PARAM_BUTTON_REGIONS = {
