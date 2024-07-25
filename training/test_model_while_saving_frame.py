@@ -10,7 +10,7 @@ PARAM_IS_SAVE_LOW_CONFIDENCES_AUTOMATICALLY = False
 PARAM_AUTO_SAVE_LOW_CONFIDENCE_THRESHOLD = 0.8
 PARAM_AUTO_SAVE_COOLDOWN = 0.75
 PARAM_SHOW_RED_CONFIDENCE_THRESHOLD = 0.8
-PARAM_MAX_NUMBER_OF_FRAMES_SAVED = 5000
+PARAM_MAX_NUMBER_OF_FRAMES_SAVED = 2000
 
 # Function to perform detection and draw bounding boxes
 def detect_and_draw(frame)->float:     
@@ -35,9 +35,19 @@ def detect_and_draw(frame)->float:
 
         return min_bbox_confidence
 
+PARAM_ZOOM_FACTOR = 0.50 # length of ROI edge in terms of the frame edge length 
+PARAM_ZOOM_TOPLEFT_NORMALIZED = (0.25, 0.25)
+PARAM_FETCH_SIZE = (1920, 1080) #NOTE: DO NOT CHANGE -> fixed miru display size, do not change. Also the camera data is fetched in this size
+
+if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEFT_NORMALIZED[1] + PARAM_ZOOM_FACTOR > 1:
+    raise ValueError("Zoomed region is out of frame boundaries")
+
 cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, PARAM_FETCH_SIZE[0])
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PARAM_FETCH_SIZE[1])
+
+cv2.namedWindow('YOLOv8 Detection', cv2.WND_PROP_FULLSCREEN)
+cv2.setWindowProperty('YOLOv8 Detection', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 # Load the YOLOv8 model
 folder_path = "C:\\Users\\Levovo20x\\Documents\\GitHub\\Miru2\\training\\local_saved_frames"
@@ -48,19 +58,30 @@ model = YOLO(model_path)
 saved_count = 0
 last_time_autosave = time.time()
 while True:
+    min_bbox_confidence = float("inf")
     ret, frame = cap.read()
-
-    print(f"Frame shape: {frame.shape}")
-    frame_untoched = copy.deepcopy(frame)
-
     if not ret:
         print("Error: Could not read frame.")
         break
+    print(f"Frame shape: {frame.shape}")
 
-    min_bbox_confidence = detect_and_draw(frame)
-    cv2.putText(frame, f"#Frame: {saved_count}, Auto Save: {PARAM_IS_SAVE_LOW_CONFIDENCES_AUTOMATICALLY}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+    if PARAM_ZOOM_FACTOR < 1:
+        zoomed_region_top_left = (int(PARAM_ZOOM_TOPLEFT_NORMALIZED[0] * frame.shape[1]), int(PARAM_ZOOM_TOPLEFT_NORMALIZED[1] * frame.shape[0]))
+        zoomed_region_bottom_right = (int(zoomed_region_top_left[0] + PARAM_ZOOM_FACTOR * frame.shape[1]), int(zoomed_region_top_left[1] + PARAM_ZOOM_FACTOR * frame.shape[0]))
+        frame = frame[zoomed_region_top_left[1]:zoomed_region_bottom_right[1], zoomed_region_top_left[0]:zoomed_region_bottom_right[0]]
+
+    # mirror the frame so that movements are more intuitive
+    frame = cv2.flip(frame, 1) 
+
+    # Resize frame to the desired size
+    resized_frame = cv2.resize(copy.deepcopy(frame), (PARAM_FETCH_SIZE[0], PARAM_FETCH_SIZE[1]))
+    print(f"Resized Frame shape: {resized_frame.shape}")
+    frame_untoched = copy.deepcopy(resized_frame)
+
+    min_bbox_confidence = detect_and_draw(resized_frame)
+    cv2.putText(resized_frame, f"#Frame: {saved_count}, Auto Save: {PARAM_IS_SAVE_LOW_CONFIDENCES_AUTOMATICALLY}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
     
-    cv2.imshow('YOLOv8 Detection', frame)
+    cv2.imshow('YOLOv8 Detection', resized_frame)
 
     # Break the loop on 'q' key press
     key = cv2.waitKey(1) & 0xFF
