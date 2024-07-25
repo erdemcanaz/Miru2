@@ -1,0 +1,5 @@
+The legacy models are uploaded to google drive so that the repository takes minimal space
+
+Drive Link: https://drive.google.com/drive/folders/1Uxsb6z-keEy0_EP87-yLs-8y8pAuMb7i?usp=sharing
+
+1): net_google_mask_28_06_2024.pt

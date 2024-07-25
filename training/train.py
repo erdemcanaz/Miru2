@@ -9,7 +9,7 @@ def main():
     # model = YOLO('yolov8s.yaml')
 
     #==== Option 2: Build from YAML and transfer pretrained weights
-    model_path_to_train_on = input("Enter the path to the model to train on (new): ")
+    model_path_to_train_on = input("Enter the path to the model to train on ( original one is not effected ) : ")
     model = YOLO('yolov8n.yaml').load(model_path_to_train_on)
 
     RUN_ON_CUDA = True
@@ -30,12 +30,12 @@ def main():
     model.train(
         data=yaml_file,
         #classes = [0,1,3],
-        epochs=200, 
+        epochs=20, 
         save_dir=save_dir, 
         project=save_dir,
         name=experiment,
         imgsz=640,
-        save_period = 25,
+        save_period = 10,
         batch = 0.8, 
         plots = True,
         amp=True # Nan Reading if set to TRUE -> BUG: https://stackoverflow.com/questions/75178762/i-got-nan-for-all-losses-while-training-yolov8-model
