@@ -44,14 +44,14 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
 
 # List of common resolutions to test, starting with the highest
 common_resolutions = [
-    (3840, 2160),  # 4K
-    (2560, 1440),  # QHD
+    #(3840, 2160),  # 4K
+    #(2560, 1440),  # QHD
     (1920, 1080),  # FHD
     (1280, 720),   # HD
-    (854, 480),    # FWVGA
+    #(854, 480),    # FWVGA
     (800,600),     # %3 percent of the screen
-    (640, 480),    # VGA
-    (320, 240)     # QVGA
+    #(640, 480),    # VGA
+    #(320, 240)     # QVGA
 ]
 
 def initialize_camera():
@@ -89,6 +89,8 @@ def find_max_resolution(resolutions):
             return width, height
         cap.release()
         cv2.destroyAllWindows()
+
+        time.sleep(1)  # Wait 1 second between resolution changes
     return None, None
 
 width, height = find_max_resolution(common_resolutions)
@@ -100,9 +102,8 @@ print(f"Max resolution found: {width}x{height}")
 
 #Initialize the camera with the max resolution
 cap = initialize_camera()
-cap.set(3, width)
-cap.set(4, height)
-
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
 #keep track of turnstile status
 PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
