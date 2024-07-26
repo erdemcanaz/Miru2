@@ -53,39 +53,54 @@ common_resolutions = [
     (320, 240)     # QVGA
 ]
 
-# Initialize the camera
-cap = cv2.VideoCapture(0)
+def initialize_camera():
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        print("Error: Could not open video capture")
+        return None
+    return cap
 
-# Check if the camera opened successfully
-if not cap.isOpened():
-    print("Error: Could not open video capture")
-    exit()
-
-print("Camera opened successfully and waiting for stabilization")
-
-time.sleep(10)
-
-# Function to set the resolution
-def set_resolution(cap, width, height):
+def set_resolution_and_capture(cap, width, height):
+    print(f"Trying to set resolution to {width}x{height}")
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-    time.sleep(1)  # Wait for the camera to adjust to the new resolution
     actual_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     actual_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    return actual_width == width and actual_height == height
-
-# Try each resolution from the list
-for (width, height) in common_resolutions:
-    if set_resolution(cap, width, height):
+    if actual_width == width and actual_height == height:
         print(f"Resolution set to {width}x{height}")
-        break
-    else:
-        print(f"Failed to set resolution to {width}x{height}")
-else:
+        ret, frame = cap.read()
+        if ret:
+            cv2.imshow("Miru", frame)
+            cv2.waitKey(500)  # Display each resolution for 500ms
+            return True
+    print(f"Failed to set resolution to {width}x{height}")
+    return False
+
+# Attempt to set the camera resolution
+def find_max_resolution(resolutions):
+    for (width, height) in resolutions:
+        cap = initialize_camera()
+        if cap is None:
+            exit()
+        if set_resolution_and_capture(cap, width, height):
+            cap.release()
+            cv2.destroyAllWindows()
+            return width, height
+        cap.release()
+        cv2.destroyAllWindows()
+    return None, None
+
+width, height = find_max_resolution(common_resolutions)
+if width is None or height is None:
     print("Could not set any of the tested resolutions.")
-    cap.release()
     exit()
 
+print(f"Max resolution found: {width}x{height}")
+
+# Initialize the camera with the max resolution
+cap = initialize_camera()
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
 
 #keep track of turnstile status
