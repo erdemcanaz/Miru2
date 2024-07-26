@@ -45,7 +45,7 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
 # List of common resolutions to test, starting with the highest
 
 # Initialize the camera
-os.system("v4l2-ctl --set-fmt-video=width=640,height=360,pixelformat=1") 
+os.system(f"v4l2-ctl --set-fmt-video=width={PARAM_DISPLAY_SIZE[0]},height={PARAM_DISPLAY_SIZE[1]},pixelformat=1") 
 os.system("v4l2-ctl --set-parm=30")
 os.system("v4l2-ctl --all")
 
@@ -56,8 +56,8 @@ if not cap.isOpened():
     raise ValueError("Unable to open the camera")
 
 # Set the desired resolution
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, PARAM_DISPLAY_SIZE[0])
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PARAM_DISPLAY_SIZE[1])
 
 # Verify the resolution
 actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -86,7 +86,6 @@ while True:
             break
         continue #Otherwise, the frame will result in an error since it also has alpha channel during object detection, never let this frame to be processed
     
-    print(frame.shape)
     if frame.shape[1] != PARAM_DISPLAY_SIZE[0] or frame.shape[0] != PARAM_DISPLAY_SIZE[1]:
         frame = cv2.resize(frame, (PARAM_DISPLAY_SIZE[0], PARAM_DISPLAY_SIZE[1]))
 
