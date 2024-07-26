@@ -125,6 +125,8 @@ if PARAM_DO_WEBCAM_TEST:
         import cv2
 
         cap = cv2.VideoCapture(0)
+        cap.set(3, PARAM_DISPLAY_SIZE[0])
+        cap.set(4, PARAM_DISPLAY_SIZE[1])
         start_time = time.time()
         while True:
             ret, frame = cap.read()
