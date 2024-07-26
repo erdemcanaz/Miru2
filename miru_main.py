@@ -94,17 +94,17 @@ def find_max_resolution(resolutions):
         time.sleep(1)  # Wait 1 second between resolution changes
     return None, None
 
-# width, height = find_max_resolution(common_resolutions)
-# if width is None or height is None:
-#     print("Could not set any of the tested resolutions.")
-#     exit()
+width, height = find_max_resolution(common_resolutions)
+if width is None or height is None:
+    print("Could not set any of the tested resolutions.")
+    exit()
 
-# print(f"Max resolution found: {width}x{height}")
+print(f"Max resolution found: {width}x{height}")
 
 #Initialize the camera with the max resolution
 cap = cv2.VideoCapture(0)
-cap.set(3, PARAM_DISPLAY_SIZE[0])
-cap.set(4, PARAM_DISPLAY_SIZE[1])
+cap.set(3, width)
+cap.set(4, height)
 
 #keep track of turnstile status
 PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
