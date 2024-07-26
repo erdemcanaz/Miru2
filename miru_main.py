@@ -42,6 +42,17 @@ PARAM_IMAGE_PROCESS_SIZE = (640, 360) #NOTE: DO NOT CHANGE
 if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEFT_NORMALIZED[1] + PARAM_ZOOM_FACTOR > 1:
     raise ValueError("Zoomed region is out of frame boundaries")
 
+# List of common resolutions to test, starting with the highest
+common_resolutions = [
+    (3840, 2160),  # 4K
+    (2560, 1440),  # QHD
+    (1920, 1080),  # FHD
+    (1280, 720),   # HD
+    (854, 480),    # FWVGA
+    (640, 480),    # VGA
+    (320, 240)     # QVGA
+]
+
 # Initialize the camera
 cap = cv2.VideoCapture(0)
 
@@ -50,9 +61,24 @@ if not cap.isOpened():
     print("Error: Could not open video capture")
     exit()
 
-# Set the frame width and height
-# cap.set(3, 1920)
-# cap.set(4, 1080)
+# Function to set the resolution
+def set_resolution(cap, width, height):
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    actual_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    actual_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    return actual_width == width and actual_height == height
+
+# Try each resolution from the list
+for (width, height) in common_resolutions:
+    if set_resolution(cap, width, height):
+        print(f"Resolution set to {width}x{height}")
+        break
+else:
+    print("Could not set any of the tested resolutions.")
+    cap.release()
+    exit()
+
 
 
 #keep track of turnstile status
