@@ -36,7 +36,7 @@ def main():
         name=experiment,
         imgsz=640,
         save_period = 10,
-        batch = 0.8, 
+        batch = 0.9, 
         plots = True,
         amp=True # Nan Reading if set to TRUE -> BUG: https://stackoverflow.com/questions/75178762/i-got-nan-for-all-losses-while-training-yolov8-model
     )

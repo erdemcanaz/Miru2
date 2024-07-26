@@ -1,6 +1,7 @@
 import os
 import cv2
 from ultralytics import YOLO
+import time
 
 def label_images(input_folder, output_folder):
     # Ensure the output folder exists
@@ -21,6 +22,11 @@ def label_images(input_folder, output_folder):
             # Prepare the label file path
             label_file_path = os.path.join(output_folder, f"{file_stem}.txt")
             
+            if len(results) == 0:
+                print(f"No objects detected in {filename}")
+                time.sleep(2)
+                continue
+
             with open(label_file_path, 'w') as label_file:
                 # Write labels to the file in YOLO format
                 for result in results:
