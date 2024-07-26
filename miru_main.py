@@ -56,11 +56,8 @@ cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     raise ValueError("Unable to open the camera")
 
-cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
-
-
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
 # Verify the resolution
 actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
