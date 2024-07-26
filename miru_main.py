@@ -61,17 +61,17 @@ while True:
 
     if frame.shape[1] != PARAM_DISPLAY_SIZE[0] or frame.shape[0] != PARAM_DISPLAY_SIZE[1]:
         frame = cv2.resize(frame, (PARAM_DISPLAY_SIZE[0], PARAM_DISPLAY_SIZE[1]))
-        
+
     #apply digital zoom to the frame
     if PARAM_ZOOM_FACTOR < 1:
         zoomed_region_top_left = (int(PARAM_ZOOM_TOPLEFT_NORMALIZED[0] * frame.shape[1]), int(PARAM_ZOOM_TOPLEFT_NORMALIZED[1] * frame.shape[0]))
         zoomed_region_bottom_right = (int(zoomed_region_top_left[0] + PARAM_ZOOM_FACTOR * frame.shape[1]), int(zoomed_region_top_left[1] + PARAM_ZOOM_FACTOR * frame.shape[0]))
         frame = frame[zoomed_region_top_left[1]:zoomed_region_bottom_right[1], zoomed_region_top_left[0]:zoomed_region_bottom_right[0]]
-
+        
     # mirror the frame so that when someone moves their right hand, the cursor moves to the right
     frame = cv2.flip(frame, 1) 
 
-    # Resize frame to the desired size
+    # Resize frame to the desired processing size of the model
     resized_frame = cv2.resize(copy.deepcopy(frame), (PARAM_IMAGE_PROCESS_SIZE[0], PARAM_IMAGE_PROCESS_SIZE[1]))
 
     #Arduino communication test
