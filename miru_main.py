@@ -45,6 +45,8 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
 # List of common resolutions to test, starting with the highest
 
 # Initialize the camera
+os.system("v4l2-ctl --set-fmt-video=width=640,height=360,pixelformat=1") 
+os.system("v4l2-ctl --set-parm=30")
 cap = cv2.VideoCapture(0)
 
 # Check if the camera opened successfully
