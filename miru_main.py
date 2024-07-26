@@ -43,68 +43,17 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
     raise ValueError("Zoomed region is out of frame boundaries")
 
 # List of common resolutions to test, starting with the highest
-common_resolutions = [
-    #(3840, 2160),  # 4K
-    #(2560, 1440),  # QHD
-    (1920, 1080),  # FHD
-    (1280, 720),   # HD
-    #(854, 480),    # FWVGA
-    (800,600),     # %3 percent of the screen
-    #(640, 480),    # VGA
-    #(320, 240)     # QVGA
-]
 
-def initialize_camera():
-    cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        print("Error: Could not open video capture")
-        return None
-    return cap
 
-def set_resolution_and_capture(cap, width, height):
-    print(f"Trying to set resolution to {width}x{height}")
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-    actual_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    actual_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    if actual_width == width and actual_height == height:
-        print(f"Resolution set to {width}x{height}")
-        ret, frame = cap.read()
-        if ret:
-            cv2.imshow("Miru", frame)
-            cv2.waitKey(500)  # Display each resolution for 500ms
-            return True
-    print(f"Failed to set resolution to {width}x{height}")
-    return False
-
-# Attempt to set the camera resolution
-def find_max_resolution(resolutions):
-    for (width, height) in resolutions:
-        print(f"Testing resolution {width}x{height}")
-        cap = initialize_camera()
-        if cap is None:
-            exit()
-        if set_resolution_and_capture(cap, width, height):
-            cap.release()
-            cv2.destroyAllWindows()
-            return width, height
-        cap.release()
-        cv2.destroyAllWindows()
-
-        time.sleep(1)  # Wait 1 second between resolution changes
-    return None, None
-
-width, height = find_max_resolution(common_resolutions)
-if width is None or height is None:
-    print("Could not set any of the tested resolutions.")
-    exit()
-
-print(f"Max resolution found: {width}x{height}")
 
 #Initialize the camera with the max resolution
 cap = cv2.VideoCapture(0)
-cap.set(3, width)
-cap.set(4, height)
+cap.set(3, PARAM_DISPLAY_SIZE[0])
+cap.set(4, PARAM_DISPLAY_SIZE[1])
+
+print("Camera resolution set to: ", cap.get(3), cap.get(4))
+
+time.sleep(2.5)
 
 #keep track of turnstile status
 PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
