@@ -49,14 +49,20 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
 # os.system("v4l2-ctl --set-parm=30")
 # os.system("v4l2-ctl --all")
 
+# Open the camera
 cap = cv2.VideoCapture(0)
+
 # Check if the camera opened successfully
 if not cap.isOpened():
     raise ValueError("Unable to open the camera")
 
+# Set the MJPG codec
+fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+cap.set(cv2.CAP_PROP_FOURCC, fourcc)
+
 # Set the desired resolution
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
 # Verify the resolution
 actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
