@@ -56,23 +56,31 @@ cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     raise ValueError("Unable to open the camera")
 
-# Get the resolutions supported by the camera
-supported_resolutions = []
-for i in range(10):
-    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH + i)
-    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT + i)
-    if width == 0 or height == 0:
-        break
-    supported_resolutions.append((int(width), int(height)))
+print("Camera opened successfully")
 
-print("Supported resolutions:")
-for resolution in supported_resolutions:
-    print(f"{resolution[0]}x{resolution[1]}")
+# Set the MJPG codec
+fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+cap.set(cv2.CAP_PROP_FOURCC, fourcc)
+print(f"Current codec: {fourcc}")
 
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, PARAM_DISPLAY_SIZE[0])
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PARAM_DISPLAY_SIZE[1])
 
 # Verify the resolution
 actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+# Verify the codec
+fourcc_actual = int(cap.get(cv2.CAP_PROP_FOURCC))
+codec = (
+    chr((fourcc_actual & 0xFF)),
+    chr((fourcc_actual >> 8) & 0xFF),
+    chr((fourcc_actual >> 16) & 0xFF),
+    chr((fourcc_actual >> 24) & 0xFF)
+)
+codec = "".join(codec)
+
+print(f"Current codec: {codec}")
 
 if (actual_width, actual_height) != PARAM_DISPLAY_SIZE:
     print(f"Warning: Desired resolution {PARAM_DISPLAY_SIZE} not supported, falling back to {actual_width}x{actual_height}")
@@ -80,8 +88,6 @@ if (actual_width, actual_height) != PARAM_DISPLAY_SIZE:
 print(f"Camera initialized with resolution: {actual_width}x{actual_height}")
 
 print("Camera resolution set to: ", cap.get(3), cap.get(4))
-
-time.sleep(2.5)
 
 #keep track of turnstile status
 PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
