@@ -44,12 +44,25 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
 
 # List of common resolutions to test, starting with the highest
 
-
-
-#Initialize the camera with the max resolution
+# Initialize the camera
 cap = cv2.VideoCapture(0)
-cap.set(3, PARAM_DISPLAY_SIZE[0])
-cap.set(4, PARAM_DISPLAY_SIZE[1])
+
+# Check if the camera opened successfully
+if not cap.isOpened():
+    raise ValueError("Unable to open the camera")
+
+# Set the desired resolution
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, PARAM_DISPLAY_SIZE[0])
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PARAM_DISPLAY_SIZE[1])
+
+# Verify the resolution
+actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+if (actual_width, actual_height) != PARAM_DISPLAY_SIZE:
+    print(f"Warning: Desired resolution {PARAM_DISPLAY_SIZE} not supported, falling back to {actual_width}x{actual_height}")
+
+print(f"Camera initialized with resolution: {actual_width}x{actual_height}")
 
 print("Camera resolution set to: ", cap.get(3), cap.get(4))
 
