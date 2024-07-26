@@ -62,12 +62,12 @@ if not cap.isOpened():
     exit()
 
 print("Camera opened successfully and waiting for stabilization")
-time.sleep(2.5) # Wait for the camera to stabilize
 
 # Function to set the resolution
 def set_resolution(cap, width, height):
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    time.sleep(1)  # Wait for the camera to adjust to the new resolution
     actual_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     actual_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     return actual_width == width and actual_height == height
