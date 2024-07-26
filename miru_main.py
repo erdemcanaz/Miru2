@@ -63,6 +63,8 @@ if not cap.isOpened():
 
 print("Camera opened successfully and waiting for stabilization")
 
+time.sleep(10)
+
 # Function to set the resolution
 def set_resolution(cap, width, height):
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
