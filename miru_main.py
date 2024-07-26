@@ -56,23 +56,11 @@ cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     raise ValueError("Unable to open the camera")
 
-# Verify the codec
-fourcc_actual = int(cap.get(cv2.CAP_PROP_FOURCC))
-codec = (
-    chr((fourcc_actual & 0xFF)),
-    chr((fourcc_actual >> 8) & 0xFF),
-    chr((fourcc_actual >> 16) & 0xFF),
-    chr((fourcc_actual >> 24) & 0xFF)
-)
-codec = "".join(codec)
+cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 
-if codec == 'MJPG':
-    print("The camera is using the MJPEG codec.")
-else:
-    print(f"The camera is using a different codec: {codec}")
 
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
 # Verify the resolution
 actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
