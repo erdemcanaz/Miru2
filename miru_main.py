@@ -56,20 +56,6 @@ cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     raise ValueError("Unable to open the camera")
 
-print("Camera opened successfully")
-
-# Set the MJPG codec
-fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-cap.set(cv2.CAP_PROP_FOURCC, fourcc)
-print(f"Current codec: {fourcc}")
-
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, PARAM_DISPLAY_SIZE[0])
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PARAM_DISPLAY_SIZE[1])
-
-# Verify the resolution
-actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
 # Verify the codec
 fourcc_actual = int(cap.get(cv2.CAP_PROP_FOURCC))
 codec = (
@@ -80,7 +66,17 @@ codec = (
 )
 codec = "".join(codec)
 
-print(f"Current codec: {codec}")
+if codec == 'MJPG':
+    print("The camera is using the MJPEG codec.")
+else:
+    print(f"The camera is using a different codec: {codec}")
+
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+
+# Verify the resolution
+actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
 if (actual_width, actual_height) != PARAM_DISPLAY_SIZE:
     print(f"Warning: Desired resolution {PARAM_DISPLAY_SIZE} not supported, falling back to {actual_width}x{actual_height}")
