@@ -51,8 +51,8 @@ if not cap.isOpened():
     exit()
 
 # Set the frame width and height
-cap.set(3, 1920)
-cap.set(4, 1080)
+# cap.set(3, 1920)
+# cap.set(4, 1080)
 
 
 #keep track of turnstile status
