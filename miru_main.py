@@ -36,7 +36,7 @@ cv2.setWindowProperty('Miru', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 # Open webcam
 PARAM_ZOOM_FACTOR = 0.50 # length of ROI edge in terms of the frame edge length 
 PARAM_ZOOM_TOPLEFT_NORMALIZED = (0.25, 0.25)
-PARAM_DISPLAY_SIZE = (1920, 1080) #NOTE: DO NOT CHANGE -> fixed miru display size, do not change. Also the camera data is fetched in this size
+PARAM_DISPLAY_SIZE = (1280, 720) #NOTE: DO NOT CHANGE -> fixed miru display size, do not change. Also the camera data is fetched in this size
 PARAM_IMAGE_PROCESS_SIZE = (640, 360) #NOTE: DO NOT CHANGE 
 
 if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEFT_NORMALIZED[1] + PARAM_ZOOM_FACTOR > 1:
