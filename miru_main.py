@@ -98,9 +98,10 @@ if width is None or height is None:
 print(f"Max resolution found: {width}x{height}")
 
 # Initialize the camera with the max resolution
-cap = initialize_camera()
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+# cap = initialize_camera()
+cap = cv2.VideoCapture(0)
+# cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+# cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
 
 #keep track of turnstile status
@@ -116,7 +117,8 @@ while True:
         if cv2.waitKey(1) & 0xFF == ord('q'):   # Break loop if 'q' is pressed
             break
         continue #Otherwise, the frame will result in an error since it also has alpha channel during object detection, never let this frame to be processed
-
+    
+    print(frame.shape)
     if frame.shape[1] != PARAM_DISPLAY_SIZE[0] or frame.shape[0] != PARAM_DISPLAY_SIZE[1]:
         frame = cv2.resize(frame, (PARAM_DISPLAY_SIZE[0], PARAM_DISPLAY_SIZE[1]))
 
