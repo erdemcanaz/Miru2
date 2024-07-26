@@ -42,9 +42,18 @@ PARAM_IMAGE_PROCESS_SIZE = (640, 360) #NOTE: DO NOT CHANGE
 if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEFT_NORMALIZED[1] + PARAM_ZOOM_FACTOR > 1:
     raise ValueError("Zoomed region is out of frame boundaries")
 
+# Initialize the camera
 cap = cv2.VideoCapture(0)
-# cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-# cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+
+# Check if the camera opened successfully
+if not cap.isOpened():
+    print("Error: Could not open video capture")
+    exit()
+
+# Set the frame width and height
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+
 
 #keep track of turnstile status
 PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
