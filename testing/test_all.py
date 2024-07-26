@@ -78,6 +78,8 @@ if PARAM_DO_SERIAL_LIBRARY_TEST:
         if number_of_ports == 0:
             is_serial_library_test_succeded = False
             print("\nWARNING: No ports are available. Make sure that the arduino is connected to the computer. test did not succeed.")
+        else:
+            is_serial_library_test_succeded = True
 
         print("\n(+++++++++) Test completed without exception.")
     except Exception as e:
