@@ -49,6 +49,7 @@ common_resolutions = [
     (1920, 1080),  # FHD
     (1280, 720),   # HD
     (854, 480),    # FWVGA
+    (800,600),     # %3 percent of the screen
     (640, 480),    # VGA
     (320, 240)     # QVGA
 ]
@@ -97,11 +98,10 @@ if width is None or height is None:
 
 print(f"Max resolution found: {width}x{height}")
 
-# Initialize the camera with the max resolution
-# cap = initialize_camera()
-cap = cv2.VideoCapture(0)
-# cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-# cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+#Initialize the camera with the max resolution
+cap = initialize_camera()
+cap.set(3, width)
+cap.set(4, height)
 
 
 #keep track of turnstile status
