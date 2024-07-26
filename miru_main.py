@@ -47,6 +47,8 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
 # Initialize the camera
 os.system("v4l2-ctl --set-fmt-video=width=640,height=360,pixelformat=1") 
 os.system("v4l2-ctl --set-parm=30")
+os.system("v4l2-ctl --all")
+
 cap = cv2.VideoCapture(0)
 
 # Check if the camera opened successfully
@@ -54,8 +56,8 @@ if not cap.isOpened():
     raise ValueError("Unable to open the camera")
 
 # Set the desired resolution
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, PARAM_DISPLAY_SIZE[0])
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, PARAM_DISPLAY_SIZE[1])
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
 
 # Verify the resolution
 actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
