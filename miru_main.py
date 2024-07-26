@@ -62,6 +62,7 @@ last_time_turnstile_activated = 0
 while True:      
     # Read frame from webcam
     ret, frame = cap.read()
+    print(frame.shape)
     if not ret:
         frame = picasso.get_image_as_frame(image_name="camera_connection_error_page", width=PARAM_DISPLAY_SIZE[0], height=PARAM_DISPLAY_SIZE[1], maintain_aspect_ratio=False)
         cv2.imshow("Miru", frame)
