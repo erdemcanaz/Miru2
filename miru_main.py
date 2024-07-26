@@ -80,6 +80,7 @@ def set_resolution_and_capture(cap, width, height):
 # Attempt to set the camera resolution
 def find_max_resolution(resolutions):
     for (width, height) in resolutions:
+        print(f"Testing resolution {width}x{height}")
         cap = initialize_camera()
         if cap is None:
             exit()
