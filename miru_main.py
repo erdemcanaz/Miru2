@@ -61,6 +61,9 @@ if not cap.isOpened():
     print("Error: Could not open video capture")
     exit()
 
+print("Camera opened successfully and waiting for stabilization")
+time.sleep(2.5) # Wait for the camera to stabilize
+
 # Function to set the resolution
 def set_resolution(cap, width, height):
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -74,6 +77,8 @@ for (width, height) in common_resolutions:
     if set_resolution(cap, width, height):
         print(f"Resolution set to {width}x{height}")
         break
+    else:
+        print(f"Failed to set resolution to {width}x{height}")
 else:
     print("Could not set any of the tested resolutions.")
     cap.release()
