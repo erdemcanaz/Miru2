@@ -164,7 +164,7 @@ while True:
         slides_show_object.decrease_opacity()
 
     # Send signals to arduino
-    if face_manager_with_memory_object.should_turn_on_turnstiles() or wrist_cursor_object.get_mode() == "pass_me_activated":
+    if face_manager_with_memory_object.should_turn_on_turnstiles( main_face_id = main_face_pose_detection_id ) or wrist_cursor_object.get_mode() == "pass_me_activated":
         arduino_communicator_object.send_activate_turnstile_signal()
         last_time_turnstile_activated = time.time()
     else:
