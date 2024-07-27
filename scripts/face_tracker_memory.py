@@ -162,7 +162,7 @@ class Face:
 
                 if equipment_presence == False and not is_main_face:
                     continue
-                
+
                 picasso.draw_image_on_frame(frame, f"{colors[equipment_presence]}{equipment}", top_right_corner[0] + x_shift, top_right_corner[1] + y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
                 y_shift += max_height
 
@@ -317,17 +317,16 @@ class FaceTrackerManager:
         else:
             return ""
     
-    def should_turn_on_turnstiles(self) -> bool:
-        should_turn_on = False
-        max_face_area = 0
-
+    def should_turn_on_turnstiles(self, main_face_id:str = "") -> bool:
         for face in self.face_objects:
-            face_area = face.get_bbox_area()
-            if face_area > max_face_area:
-                max_face_area = face_area
-                should_turn_on = face.is_allowed_to_pass()
+            if main_face_id == face.get_face_bbox()[4]:
+                return face.is_allowed_to_pass()
+        else: # if for is completed without break
+            return False
+        
 
-        return should_turn_on           
+
+             
 
                         
 
