@@ -176,7 +176,7 @@ while True:
     wrist_cursor_object.draw_buttons_on_frame(frame)
 
     coordinate_transform_coefficients = (frame.shape[1] / PARAM_IMAGE_PROCESS_SIZE[0], frame.shape[0] / PARAM_IMAGE_PROCESS_SIZE[1]) # to transform the coordinates of the face bounding boxes to the original frame size from the resized frame size
-    face_manager_with_memory_object.draw_faces_on_frame(frame, coordinate_transform_coefficients=coordinate_transform_coefficients)
+    face_manager_with_memory_object.draw_faces_on_frame(frame, main_face_id = main_face_pose_detection_id, coordinate_transform_coefficients=coordinate_transform_coefficients)
 
     wrist_cursor_object.draw_wrist_cursor_on_frame(frame)
 

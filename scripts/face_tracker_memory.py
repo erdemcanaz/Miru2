@@ -160,6 +160,9 @@ class Face:
                 if equipment_presence == False and (equipment in rules_to_show_only_if_present): 
                     continue
 
+                if equipment_presence == False and not is_main_face:
+                    continue
+                
                 picasso.draw_image_on_frame(frame, f"{colors[equipment_presence]}{equipment}", top_right_corner[0] + x_shift, top_right_corner[1] + y_shift, width=100, height=max_height, maintain_aspect_ratio=True)
                 y_shift += max_height
 
@@ -276,19 +279,10 @@ class FaceTrackerManager:
                 face.append_detection_confidences(detected_equipments)
                 face.update_obeyed_rules()
 
-    def draw_faces_on_frame(self, frame:np.ndarray, coordinate_transform_coefficients=[1,1]) -> np.ndarray:
-        
-        main_face = None
-        max_area = 0
+    def draw_faces_on_frame(self, frame:np.ndarray, main_face_id:str = "", coordinate_transform_coefficients=[1,1]) -> np.ndarray:     
         for face in self.face_objects:
-            face_area = face.get_bbox_area()
-            if face_area > max_area:
-                max_area = face_area
-                main_face = face           
-
-        for face in self.face_objects:
-            if face == main_face:
-                face.draw_face(frame=frame, is_main_face = True, coordinate_transform_coefficients=coordinate_transform_coefficients)
+            if main_face_id == face.get_face_bbox()[4]:
+                face.draw_face(frame=frame, is_main_face = True, stripe_stroke = 2, bold_stroke= 10, coordinate_transform_coefficients=coordinate_transform_coefficients)
             else:                
                 face.draw_face(frame=frame, is_main_face = False, coordinate_transform_coefficients=coordinate_transform_coefficients)
     
@@ -303,7 +297,6 @@ class FaceTrackerManager:
                 if face_area > max_area:
                     max_area = face_area
                     main_face = face
-
             if main_face is None:
                 return ""
             return main_face.get_face_bbox()[4]
