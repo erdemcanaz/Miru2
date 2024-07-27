@@ -58,6 +58,10 @@ is_linux = platform.system() == "Linux"
 if is_linux:
     cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
     print(f"V4L2 is used for camera connection because OS='{platform.system()}'")
+    # Set the MJPG codec
+    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    cap.set(cv2.CAP_PROP_FOURCC, fourcc)
+    cap.set(cv2.CAP_PROP_FPS, 30)
 else:
     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     print(f"DShow is used for camera connection because OS='{platform.system()}'")
@@ -66,8 +70,19 @@ else:
 if not cap.isOpened():
     raise ValueError("Unable to open the camera")
 
+# Verify the codec
+fourcc_actual = int(cap.get(cv2.CAP_PROP_FOURCC))
+codec = (
+    chr((fourcc_actual & 0xFF)),
+    chr((fourcc_actual >> 8) & 0xFF),
+    chr((fourcc_actual >> 16) & 0xFF),
+    chr((fourcc_actual >> 24) & 0xFF)
+)
+codec = "".join(codec)
+
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+
 
 # Verify the resolution
 actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
