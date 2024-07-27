@@ -321,10 +321,10 @@ class FaceTrackerManager:
         print(f"Main face id: {main_face_id}")
         for face in self.face_objects:
             if main_face_id == face.get_face_bbox()[4]:
-                print("Face is allowed to pass")
+                print("Face is allowed to pass") if face.is_allowed_to_pass() else print("Face is not allowed to pass")
                 return face.is_allowed_to_pass()
         else: # if for is completed without break
-            print("Face is not allowed to pass")
+            print("No face detected")
             return False
         
 
