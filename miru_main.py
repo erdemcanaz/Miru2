@@ -145,7 +145,7 @@ while True:
     pose_pred_dicts = pose_detector_object.predict_frame_and_return_detections(resized_frame,bbox_confidence=0.35)   
     face_bbox_coords = pose_detector_object.return_face_bboxes_list(frame = resized_frame, predictions= pose_pred_dicts, keypoint_confidence_threshold = 0.80)
     face_manager_with_memory_object.update_face_bboxes(face_bbox_coords)    
-    main_face_pose_detection_id = face_manager_with_memory_object.get_main_face_detection_id()
+    main_face_pose_detection_id = face_manager_with_memory_object.get_main_face_detection_id(main_face_according_to = "CLOSEST_TO_CENTER", frame = resized_frame)
 
     wrist_cursor_object.update_wrist_cursor_position(main_face_pose_detection_id=main_face_pose_detection_id, pose_pred_dicts=pose_pred_dicts, predicted_frame=resized_frame)
     wrist_cursor_object.update_wrist_cursor_mode()

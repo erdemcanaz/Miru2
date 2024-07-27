@@ -20,7 +20,7 @@ class Face:
         self.age:int = 0 #number of iterations since the face was last detected
         self.face_bbox:list = face_bbox #coordinates of the face bounding box in the format (x1,y1,x2,y2)
         self.face_bbox_transformed:list = None #coordinates of the face bounding box in the format (x1,y1,x2,y2) in the original frame size
-
+        
         self.obeyed_rules = {
             "is_hairnet_worn": False,
             "is_safety_google_worn": False,
@@ -294,18 +294,35 @@ class FaceTrackerManager:
     
         #picasso.draw_image_on_frame(frame=frame, image_name="information", x=50, y=50, width=100, height=100, maintain_aspect_ratio=True)
     
-    def get_main_face_detection_id(self) -> str:
+    def get_main_face_detection_id(self, main_face_according_to:str = "AREA", frame = None) -> str:
         main_face = None
-        max_area = 0
-        for face in self.face_objects:
-            face_area = face.get_bbox_area()
-            if face_area > max_area:
-                max_area = face_area
-                main_face = face
+        if main_face_according_to == "AREA":
+            max_area = 0
+            for face in self.face_objects:
+                face_area = face.get_bbox_area()
+                if face_area > max_area:
+                    max_area = face_area
+                    main_face = face
 
-        if main_face is None:
+            if main_face is None:
+                return ""
+            return main_face.get_face_bbox()[4]
+        elif main_face_according_to == "CLOSEST_TO_CENTER":
+            if frame is None:
+                return ""
+            min_distance = float("inf")
+            for face in self.face_objects:
+                center_of_face = (face.get_face_bbox()[0] + face.get_face_bbox()[2])//2, (face.get_face_bbox()[1] + face.get_face_bbox()[3])//2
+                distance = (center_of_face[0] - frame.shape[1]//2)**2 + (center_of_face[1] - frame.shape[0]//2)**2
+                if distance < min_distance:
+                    min_distance = distance
+                    main_face = face
+
+            if main_face is None:
+                return ""
+            return main_face.get_face_bbox()[4]
+        else:
             return ""
-        return main_face.get_face_bbox()[4]
     
     def should_turn_on_turnstiles(self) -> bool:
         should_turn_on = False
