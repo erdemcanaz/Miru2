@@ -320,8 +320,10 @@ class FaceTrackerManager:
     def should_turn_on_turnstiles(self, main_face_id:str = "") -> bool:
         for face in self.face_objects:
             if main_face_id == face.get_face_bbox()[4]:
+                print("Face is allowed to pass")
                 return face.is_allowed_to_pass()
         else: # if for is completed without break
+            print("Face is not allowed to pass")
             return False
         
 
