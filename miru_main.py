@@ -81,8 +81,8 @@ codec = (
 codec = "".join(codec)
 print(f"Camera codec: {codec}")
 
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
 
 # Verify the resolution
