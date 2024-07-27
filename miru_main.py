@@ -42,10 +42,7 @@ PARAM_IMAGE_PROCESS_SIZE = (640, 360) #NOTE: DO NOT CHANGE
 if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEFT_NORMALIZED[1] + PARAM_ZOOM_FACTOR > 1:
     raise ValueError("Zoomed region is out of frame boundaries")
 
-# List of common resolutions to test, starting with the highest
 
-# Initialize the camera
-# os.system(f"v4l2-ctl --set-fmt-video=width={800},height={600},pixelformat=1") 
 # os.system("v4l2-ctl --set-parm=30")
 # os.system("v4l2-ctl --all")
 
@@ -83,18 +80,43 @@ print(f"Camera codec: {codec}")
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    (1280, 720),
+    (1024, 768),
+    (800, 600),
+    (640, 480),
+    (320, 240)
+]
+
+def check_resolution(cap, width, height):
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    return (actual_width, actual_height) == (width, height)
+
+# Try resolutions until one works
+selected_resolution = None
+for width, height in COMMON_RESOLUTIONS:
+    print(f"    Trying resolution: {width}x{height}")
+    if check_resolution(cap, width, height):
+        selected_resolution = (width, height)
+        print(f"->Selected resolution: {width}x{height}")
+        break
+
+if not selected_resolution:
+    raise ValueError("None of the common resolutions are supported by the camera.")
+
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, selected_resolution[0])
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, selected_resolution[1])
 
 
 # Verify the resolution
 actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+print(f"Camera resolution is validated to be: {actual_width}x{actual_height}")
 
 if (actual_width, actual_height) != PARAM_DISPLAY_SIZE:
-    print(f"Warning: Desired resolution {PARAM_DISPLAY_SIZE} not supported, falling back to {actual_width}x{actual_height}")
-
-print(f"Camera initialized with resolution: {actual_width}x{actual_height}")
-
-print("Camera resolution set to: ", cap.get(3), cap.get(4))
+    print(f"Warning: Camera resolution does not match the display size. Expected: {PARAM_DISPLAY_SIZE}, Actual: {actual_width}x{actual_height}")
 
 #keep track of turnstile status
 PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
