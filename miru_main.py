@@ -43,19 +43,12 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
     raise ValueError("Zoomed region is out of frame boundaries")
 
 
-# os.system("v4l2-ctl --set-parm=30")
-# os.system("v4l2-ctl --all")
-
-# Open the camera
-
-    
 cap = None
 
 is_linux = platform.system() == "Linux"
 if is_linux:
     cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
     print(f"V4L2 is used for camera connection because OS='{platform.system()}'")
-    # Set the MJPG codec
     fourcc = cv2.VideoWriter_fourcc(*'MJPG')
     cap.set(cv2.CAP_PROP_FOURCC, fourcc)
     cap.set(cv2.CAP_PROP_FPS, 30)
@@ -63,7 +56,6 @@ else:
     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     print(f"DShow is used for camera connection because OS='{platform.system()}'")
 
-# Check if the camera opened successfully
 if not cap.isOpened():
     raise ValueError("Unable to open the camera")
 
@@ -78,8 +70,9 @@ codec = (
 codec = "".join(codec)
 print(f"Camera codec: {codec}")
 
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+# List of common resolutions to try
+COMMON_RESOLUTIONS = [
+    #(1920, 1080),
     (1280, 720),
     (1024, 768),
     (800, 600),
