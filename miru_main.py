@@ -79,6 +79,7 @@ codec = (
     chr((fourcc_actual >> 24) & 0xFF)
 )
 codec = "".join(codec)
+print(f"Camera codec: {codec}")
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
