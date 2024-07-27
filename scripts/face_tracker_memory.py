@@ -318,6 +318,7 @@ class FaceTrackerManager:
             return ""
     
     def should_turn_on_turnstiles(self, main_face_id:str = "") -> bool:
+        print(f"Main face id: {main_face_id}")
         for face in self.face_objects:
             if main_face_id == face.get_face_bbox()[4]:
                 print("Face is allowed to pass")
