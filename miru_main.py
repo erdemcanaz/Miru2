@@ -1,5 +1,5 @@
 import sys
-import os
+import os, platform
 import copy 
 import time
 
@@ -50,7 +50,17 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
 # os.system("v4l2-ctl --all")
 
 # Open the camera
-cap = cv2.VideoCapture(0)
+
+    
+cap = None
+
+is_linux = platform.system() == "Linux"
+if is_linux:
+    cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+    print(f"V4L2 is used for camera connection because OS='{platform.system()}'")
+else:
+    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    print(f"DShow is used for camera connection because OS='{platform.system()}'")
 
 # Check if the camera opened successfully
 if not cap.isOpened():
