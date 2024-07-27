@@ -22,6 +22,24 @@ import wrist_cursor
 import cv2
 import pprint
 
+# PARAMETERS ========================================================================================================
+PARAM_ZOOM_FACTOR = 0.50 # length of ROI edge in terms of the frame edge length 
+PARAM_ZOOM_TOPLEFT_NORMALIZED = (0.25, 0.25) # top left corner of the zoomed region in normalized coordinates
+PARAM_DISPLAY_SIZE = (1920, 1080) #NOTE: DO NOT CHANGE -> fixed miru display size, do not change. Also the camera data is fetched in this size
+PARAM_IMAGE_PROCESS_SIZE = (640, 360) #NOTE: DO NOT CHANGE, model input size. If you change, the model will resize the image to this size before processing it. But it is kinda more relaxing to do it beforehand :)
+PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
+PARAM_CAP_RESOLUTIONS_TO_CHECK = [# List of common couples to try as webcam resolution. Should be in descending order of preference
+    (1920, 1080),
+    (1280, 720),
+    (1024, 768),
+    (800, 600),
+    (640, 480),
+    (320, 240)
+]
+if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEFT_NORMALIZED[1] + PARAM_ZOOM_FACTOR > 1:
+    raise ValueError("Zoomed region is out of frame boundaries")
+
+# OBJECTS ========================================================================================================
 arduino_communicator_object = arduino_communicator.ArduinoCommunicator(baud_rate=9600, serial_timeout=1, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 1, verbose = False, write_delay_s=0.01,arduino_reboot_time=2.5)
 pose_detector_object = pose_detector.PoseDetector(model_name="yolov8n")
 equipment_detector_object = equipment_detector.EquipmentDetector(model_name="net_google_mask_26_07_2024")
@@ -29,22 +47,12 @@ slides_show_object = slides_show.SlideShow(slides_folder="scripts/slides", slide
 face_manager_with_memory_object = face_tracker_memory.FaceTrackerManager()
 wrist_cursor_object = wrist_cursor.WristCursor()
 
-# Create a window named 'Object Detection' and set the window to fullscreen if desired
+# UI SETUP ========================================================================================================
 cv2.namedWindow('Miru', cv2.WINDOW_NORMAL)
 cv2.setWindowProperty('Miru', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
-# Open webcam
-PARAM_ZOOM_FACTOR = 0.50 # length of ROI edge in terms of the frame edge length 
-PARAM_ZOOM_TOPLEFT_NORMALIZED = (0.25, 0.25)
-PARAM_DISPLAY_SIZE = (1920, 1080) #NOTE: DO NOT CHANGE -> fixed miru display size, do not change. Also the camera data is fetched in this size
-PARAM_IMAGE_PROCESS_SIZE = (640, 360) #NOTE: DO NOT CHANGE 
-
-if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEFT_NORMALIZED[1] + PARAM_ZOOM_FACTOR > 1:
-    raise ValueError("Zoomed region is out of frame boundaries")
-
-
+# INIT CAMERA ========================================================================================================
 cap = None
-
 is_linux = platform.system() == "Linux"
 if is_linux:
     cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
@@ -70,16 +78,6 @@ codec = (
 codec = "".join(codec)
 print(f"Camera codec: {codec}")
 
-# List of common resolutions to try
-COMMON_RESOLUTIONS = [
-    #(1920, 1080),
-    (1280, 720),
-    (1024, 768),
-    (800, 600),
-    (640, 480),
-    (320, 240)
-]
-
 def check_resolution(cap, width, height):
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
@@ -89,7 +87,7 @@ def check_resolution(cap, width, height):
 
 # Try resolutions until one works
 selected_resolution = None
-for width, height in COMMON_RESOLUTIONS:
+for width, height in PARAM_CAP_RESOLUTIONS_TO_CHECK:
     print(f"    Trying resolution: {width}x{height}")
     if check_resolution(cap, width, height):
         selected_resolution = (width, height)
@@ -102,7 +100,6 @@ if not selected_resolution:
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, selected_resolution[0])
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, selected_resolution[1])
 
-
 # Verify the resolution
 actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -111,10 +108,8 @@ print(f"Camera resolution is validated to be: {actual_width}x{actual_height}")
 if (actual_width, actual_height) != PARAM_DISPLAY_SIZE:
     print(f"Warning: Camera resolution does not match the display size. Expected: {PARAM_DISPLAY_SIZE}, Actual: {actual_width}x{actual_height}")
 
-#keep track of turnstile status
-PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
+# MAIN LOOP ========================================================================================================
 last_time_turnstile_activated = 0
-
 while True:      
     # Read frame from webcam
     ret, frame = cap.read()
@@ -126,15 +121,16 @@ while True:
         continue #Otherwise, the frame will result in an error since it also has alpha channel during object detection, never let this frame to be processed
     
     if frame.shape[1] != PARAM_DISPLAY_SIZE[0] or frame.shape[0] != PARAM_DISPLAY_SIZE[1]:
+        # Since camera supposed to be in the same resolution as the display, this should not happen. But if it happens, resize the frame
         frame = cv2.resize(frame, (PARAM_DISPLAY_SIZE[0], PARAM_DISPLAY_SIZE[1]))
 
-    #apply digital zoom to the frame
+    #apply digital zoom to the frame. Essepically useful for detecting small objects at a distance
     if PARAM_ZOOM_FACTOR < 1:
         zoomed_region_top_left = (int(PARAM_ZOOM_TOPLEFT_NORMALIZED[0] * frame.shape[1]), int(PARAM_ZOOM_TOPLEFT_NORMALIZED[1] * frame.shape[0]))
         zoomed_region_bottom_right = (int(zoomed_region_top_left[0] + PARAM_ZOOM_FACTOR * frame.shape[1]), int(zoomed_region_top_left[1] + PARAM_ZOOM_FACTOR * frame.shape[0]))
         frame = frame[zoomed_region_top_left[1]:zoomed_region_bottom_right[1], zoomed_region_top_left[0]:zoomed_region_bottom_right[0]]
         
-    # mirror the frame so that when someone moves their right hand, the cursor moves to the right
+    # mirror the frame so that the movements are more intuitive
     frame = cv2.flip(frame, 1) 
 
     # Resize frame to the desired processing size of the model
