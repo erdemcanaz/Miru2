@@ -326,10 +326,6 @@ class FaceTrackerManager:
         else: # if for is completed without break
             print("No face detected")
             return False
-        
-
-
-             
 
                         
 

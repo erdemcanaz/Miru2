@@ -230,7 +230,7 @@ $ sudo xhost +
 Run the [`dustynv/l4t-pytorch:r35.4.1`](https://hub.docker.com/r/dustynv/l4t-pytorch/tags) image;
 
 ```
-$ sudo docker run --runtime nvidia --device /dev/video0:/dev/video0 -it --rm --network=host -e DISPLAY -e QT_X11_NO_MITSHM=1 dustynv/l4t-pytorch:r35.4.1
+$ sudo docker run --privileged --runtime nvidia -it --rm --network=host -e DISPLAY -e QT_X11_NO_MITSHM=1 dustynv/l4t-pytorch:r35.4.1
 ```
 
 go to home directory
