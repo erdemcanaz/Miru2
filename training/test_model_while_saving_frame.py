@@ -10,7 +10,7 @@ PARAM_IS_SAVE_LOW_CONFIDENCES_AUTOMATICALLY = False
 PARAM_AUTO_SAVE_LOW_CONFIDENCE_THRESHOLD = 0.8
 PARAM_AUTO_SAVE_COOLDOWN = 0.75
 PARAM_SHOW_RED_CONFIDENCE_THRESHOLD = 0.8
-PARAM_MAX_NUMBER_OF_FRAMES_SAVED = 2000
+PARAM_MAX_NUMBER_OF_FRAMES_SAVED = 3000
 
 # Function to perform detection and draw bounding boxes
 def detect_and_draw(frame)->float:     
@@ -113,7 +113,7 @@ while True:
             print(f"Mannualy saved frame: {image_name}")
 
         # Save the current frame to a desired folder
-        cv2.imwrite(f"{folder_path}/{image_name}.png", frame_untoched)
+        cv2.imwrite(f"{folder_path}/{image_name}.jpg", frame_untoched)
 
     if saved_count >= PARAM_MAX_NUMBER_OF_FRAMES_SAVED:
         print("Reached the maximum number of saved frames.")

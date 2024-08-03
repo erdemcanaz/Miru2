@@ -42,7 +42,7 @@ if PARAM_ZOOM_TOPLEFT_NORMALIZED[0] + PARAM_ZOOM_FACTOR > 1 or PARAM_ZOOM_TOPLEF
 # OBJECTS ========================================================================================================
 arduino_communicator_object = arduino_communicator.ArduinoCommunicator(baud_rate=9600, serial_timeout=1, expected_response="THIS_IS_ARDUINO", connection_test_period_s = 1, verbose = False, write_delay_s=0.01,arduino_reboot_time=2.5)
 pose_detector_object = pose_detector.PoseDetector(model_name="yolov8n")
-equipment_detector_object = equipment_detector.EquipmentDetector(model_name="net_google_mask_26_07_2024")
+equipment_detector_object = equipment_detector.EquipmentDetector(model_name="miru_model_03_08_2024")
 slides_show_object = slides_show.SlideShow(slides_folder="scripts/slides", slide_duration_s=5)
 face_manager_with_memory_object = face_tracker_memory.FaceTrackerManager()
 wrist_cursor_object = wrist_cursor.WristCursor()

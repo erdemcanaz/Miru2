@@ -30,13 +30,13 @@ def main():
     model.train(
         data=yaml_file,
         #classes = [0,1,3],
-        epochs=20, 
+        epochs=80, 
         save_dir=save_dir, 
         project=save_dir,
         name=experiment,
         imgsz=640,
         save_period = 10,
-        batch = 0.9, 
+        batch = 0.75, 
         plots = True,
         amp=True # Nan Reading if set to TRUE -> BUG: https://stackoverflow.com/questions/75178762/i-got-nan-for-all-losses-while-training-yolov8-model
     )

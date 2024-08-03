@@ -5,7 +5,7 @@ from typing import List, Dict, Tuple #for python3.8 compatibility
 class EquipmentDetector():
 
     EQUIPMENT_MODEL_PATHS = {
-        "net_google_mask_26_07_2024": "trained_yolo_models/net_google_mask_26_07_2024.pt",
+        "miru_model_03_08_2024": "trained_yolo_models/miru_model_03_08_2024.pt",
     }
     def __init__(self, model_name : str = None) -> None:
         self.MODEL_PATH = EquipmentDetector.EQUIPMENT_MODEL_PATHS[model_name]

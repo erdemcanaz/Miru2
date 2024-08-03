@@ -21,8 +21,8 @@ class WristCursor:
         }
 
         self.PARAM_BUTTON_REGIONS = {
-            "how_to_use": [0.775, 0.025, 0.975, 0.225],
-            "pass_me": [0.775, 0.250, 0.975, 0.450]
+            "how_to_use": [0.775, 0.025, 0.975, 0.325],
+            "pass_me": [0.775, 0.350, 0.975, 0.650]
         }
 
         self.MODES = (
