@@ -1,5 +1,2 @@
-white_net
-blue_net
-safety_goggles
-blue_surgical_mask
-white_surgical_mask
+beard
+shaved

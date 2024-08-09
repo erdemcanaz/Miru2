@@ -6,7 +6,7 @@ def main():
     torch.cuda.set_device(0) # Set to your desired GPU number
 
     # #==== Option 1: Train directly from the model definition
-    # model = YOLO('yolov8s.yaml')
+    # model = YOLO('yolov8n.yaml')
 
     #==== Option 2: Build from YAML and transfer pretrained weights
     model_path_to_train_on = input("Enter the path to the model to train on ( original one is not effected ) : ")
@@ -30,13 +30,13 @@ def main():
     model.train(
         data=yaml_file,
         #classes = [0,1,3],
-        epochs=80, 
+        epochs=100, 
         save_dir=save_dir, 
         project=save_dir,
         name=experiment,
         imgsz=640,
-        save_period = 10,
-        batch = 0.75, 
+        save_period = 50,
+        batch = 0.80, 
         plots = True,
         amp=True # Nan Reading if set to TRUE -> BUG: https://stackoverflow.com/questions/75178762/i-got-nan-for-all-losses-while-training-yolov8-model
     )
