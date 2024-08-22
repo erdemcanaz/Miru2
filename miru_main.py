@@ -181,8 +181,10 @@ while True:
     wrist_cursor_object.draw_wrist_cursor_on_frame(frame)
 
     if is_arduino_connected:
+        print("Arduino is connected")
         picasso.draw_image_on_frame(frame=frame, image_name="arduino_connection_blue", x=10, y=10, width=100, height=100, maintain_aspect_ratio=False)
     else:
+        print("Arduino is not connected")
         picasso.draw_image_on_frame(frame=frame, image_name="arduino_connection_grey", x=10, y=10, width=100, height=100, maintain_aspect_ratio=False)
     
     # draw turnstile status icon
