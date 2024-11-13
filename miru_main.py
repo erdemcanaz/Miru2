@@ -50,6 +50,8 @@ wrist_cursor_object = wrist_cursor.WristCursor()
 # UI SETUP ========================================================================================================
 cv2.namedWindow('Miru', cv2.WINDOW_NORMAL)
 cv2.setWindowProperty('Miru', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+last_time_ui_restart = time.time()
+UI_RESTART_DURATION_SEC = 10
 
 # INIT CAMERA ========================================================================================================
 cap = None
@@ -215,6 +217,12 @@ while True:
     # Draw slide on top of frame according to the opacity
     slide_frame = slides_show_object.get_slide_images(width=frame.shape[1], height=frame.shape[0]) 
     frame = slides_show_object.draw_slide_on_top_of_frame(frame=frame, slide_frame=slide_frame)
+
+    if time.time() - last_time_ui_restart > UI_RESTART_DURATION_SEC:
+        cv2.destroyAllWindows()
+        cv2.namedWindow('Miru', cv2.WINDOW_NORMAL)
+        cv2.setWindowProperty('Miru', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        last_time_ui_restart = time.time()           
 
     cv2.imshow("Miru", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):   # Break loop if 'q' is pressed
