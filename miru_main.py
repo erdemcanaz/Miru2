@@ -23,8 +23,8 @@ import cv2
 import pprint
 
 # PARAMETERS ========================================================================================================
-PARAM_ZOOM_FACTOR = 0.50 # length of ROI edge in terms of the frame edge length 
-PARAM_ZOOM_TOPLEFT_NORMALIZED = (0.25, 0.25) # top left corner of the zoomed region in normalized coordinates
+PARAM_ZOOM_FACTOR = 1.00 # length of ROI edge in terms of the frame edge length 
+PARAM_ZOOM_TOPLEFT_NORMALIZED = (0.0, 0.0) # top left corner of the zoomed region in normalized coordinates
 PARAM_DISPLAY_SIZE = (1920, 1080) #NOTE: DO NOT CHANGE -> fixed miru display size, do not change. Also the camera data is fetched in this size
 PARAM_IMAGE_PROCESS_SIZE = (640, 360) #NOTE: DO NOT CHANGE, model input size. If you change, the model will resize the image to this size before processing it. But it is kinda more relaxing to do it beforehand :)
 PARAM_KEEP_TURNED_ON_TIME = 3.5 #NOTE: this parameter shoudl be same as the one in the arduino code
@@ -63,7 +63,7 @@ if is_linux:
     cap.set(cv2.CAP_PROP_FOURCC, fourcc)
     cap.set(cv2.CAP_PROP_FPS, 30)
 else:
-    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
     print(f"DShow is used for camera connection because OS='{platform.system()}'")
 
 if not cap.isOpened():
