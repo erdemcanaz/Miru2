@@ -120,11 +120,13 @@ class Face:
         return self.age > self.AGE_LIMIT
 
     def is_allowed_to_pass(self) -> bool:
-        if not (self.obeyed_rules["is_hairnet_worn"] and self.obeyed_rules["is_safety_google_worn"]):
+        # if not (self.obeyed_rules["is_hairnet_worn"] and self.obeyed_rules["is_safety_google_worn"]):
+        #     return False
+        # if self.obeyed_rules["is_beard_present"] and not (self.obeyed_rules["is_beardnet_worn"] or self.obeyed_rules["is_surgical_mask_worn"]):
+        #     return False
+        
+        if not (self.obeyed_rules["is_surgical_mask_worn"]):
             return False
-        if self.obeyed_rules["is_beard_present"] and not (self.obeyed_rules["is_beardnet_worn"] or self.obeyed_rules["is_surgical_mask_worn"]):
-            return False
-            
         return True
 
     def draw_face(self, frame: np.ndarray = None, is_main_face: bool = None, stripe_stroke: int = 1, bold_stroke: int = 5, coordinate_transform_coefficients=[1, 1]):
@@ -155,7 +157,7 @@ class Face:
             ("beardnet", self.obeyed_rules["is_beardnet_worn"])
         ]
         
-        rules_to_show_only_if_present = ["surgical_mask", "beardnet"] #Some equipments are not mandatory, but should be shown if present
+        rules_to_show_only_if_present = ["hairnet", "goggles"] #Some equipments are not mandatory, but should be shown if present
         for equipment, equipment_presence in equipment_rules:
                 if equipment_presence == False and (equipment in rules_to_show_only_if_present): 
                     continue
