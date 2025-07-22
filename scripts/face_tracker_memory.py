@@ -153,11 +153,15 @@ class Face:
         equipment_rules = [
             ("hairnet", self.obeyed_rules["is_hairnet_worn"]),
             ("goggles", self.obeyed_rules["is_safety_google_worn"]),
-            ("surgical_mask", self.obeyed_rules["is_surgical_mask_worn"]),
-            ("beardnet", self.obeyed_rules["is_beardnet_worn"])
+
+            ("surgical_mask", self.obeyed_rules["is_surgical_mask_worn"] or self.obeyed_rules["is_beardnet_worn"]), # Patch: surgical mask and beardnet should be considered as one rule
+
+            #("beardnet", self.obeyed_rules["is_beardnet_worn"])
+            ("beardnet", False) # Patch
         ]
         
-        rules_to_show_only_if_present = ["hairnet", "goggles"] #Some equipments are not mandatory, but should be shown if present
+        rules_to_show_only_if_present = ["hairnet", "goggles", "beardnet"] #Some equipments are not mandatory, but should be shown if present
+            
         for equipment, equipment_presence in equipment_rules:
                 if equipment_presence == False and (equipment in rules_to_show_only_if_present): 
                     continue
